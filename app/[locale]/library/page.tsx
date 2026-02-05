@@ -13,11 +13,10 @@ export const metadata = {
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const supabase = await createClient();
-  const categoryFilter = searchParams.category as string;
-  const searchFilter = searchParams.search as string;
+  const { category: categoryFilter, search: searchFilter } = await searchParams;
 
   // 1. Fetch Categories for Filter
   const { data: categories } = await supabase
@@ -25,38 +24,28 @@ export default async function LibraryPage({
     .select("name, slug")
     .order("name");
 
-  // 2. Build Query
+  // 2. Build Query - Fetching from NEW 'books' table for the PDF Library
   let query = supabase
-    .from("book_reviews")
+    .from("books")
     .select(
       `
       id,
       title,
       slug,
-      book_title,
-      book_author,
-      book_cover_url,
-      rating,
-      excerpt,
+      author,
+      cover_url,
+      description,
+      year,
       categories (
         name,
         slug
       )
     `,
     )
-    .eq("published", true)
     .order("created_at", { ascending: false });
 
-  if (categoryFilter) {
-    // Note: This requires filtering on the joined table or exact match on ID if we had it.
-    // For simplicity with standard Postgrest on joined cols (which can be tricky),
-    // we'll filter client side or assume we setup the inner join filter correctly?
-    // Let's try the inner join filter approach provided Supabase supports it cleanly in this version.
-    // Actually, simplest is to filter by category_id if we have it, but we have slug.
-    // Let's allow fetching all and filtering (not efficient for huge data but fine for <100 reviews)
-    // OR: use !inner on categories.
-    // query = query.eq('categories.slug', categoryFilter); // often fails without !inner
-  }
+  // Note: We can add server-side filtering here if needed, sticking to client filter for consistency with previous code structure
+  // unless pagination is key.
 
   const { data: allBooks, error } = await query;
 
@@ -66,19 +55,22 @@ export default async function LibraryPage({
 
   // Client-side filter fallback (safe for small dataset)
   let books = allBooks || [];
+
   if (categoryFilter) {
     books = books.filter((b: any) => b.categories?.slug === categoryFilter);
   }
+
   if (searchFilter) {
-    const lowerSearch = searchFilter.toLowerCase();
+    const lowerSearch = (searchFilter as string).toLowerCase();
     books = books.filter(
       (b: any) =>
-        b.book_title.toLowerCase().includes(lowerSearch) ||
-        b.book_author.toLowerCase().includes(lowerSearch),
+        b.title.toLowerCase().includes(lowerSearch) ||
+        b.author.toLowerCase().includes(lowerSearch),
     );
   }
 
-  const featuredBook = books.find((b: any) => b.rating === 5) || books[0];
+  // Featured book (latest)
+  // const featuredBook = books[0];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans text-gray-900 dark:text-gray-100 pb-20">
@@ -91,8 +83,8 @@ export default async function LibraryPage({
               Perpustakaan Digital
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Temukan wawasan mendalam dari buku-buku terbaik dunia. Koleksi
-              yang dikurasi untuk pembaca yang haus ilmu.
+              Baca koleksi buku digital (PDF) terbaik kami. Akses gratis untuk
+              seluruh anggota.
             </p>
           </div>
 
@@ -105,7 +97,7 @@ export default async function LibraryPage({
               <input
                 type="text"
                 name="search"
-                defaultValue={searchFilter}
+                defaultValue={searchFilter as string}
                 placeholder="Cari judul buku, penulis, atau topik..."
                 className="block w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg focus:ring-0 focus:border-brand-500 hover:border-brand-200 dark:hover:border-brand-800 transition-all duration-300 text-lg"
               />
@@ -138,6 +130,18 @@ export default async function LibraryPage({
                 </Link>
               ))}
             </nav>
+
+            {/* Admin Action */}
+            <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-6">
+              <p className="text-xs text-center text-gray-400 mb-2">
+                Area Petugas
+              </p>
+              <Link href="/admin/upload">
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+                  Upload Buku
+                </button>
+              </Link>
+            </div>
           </div>
         </aside>
 
@@ -159,74 +163,62 @@ export default async function LibraryPage({
                 <FaBookOpen className="w-10 h-10" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Tidak ada buku ditemukan
+                Perpustakaan Belum Terisi
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                Coba sesuaikan kata kunci pencarian atau filter kategori Anda.
+              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+                Belum ada buku digital yang diunggah. Sebagai Admin, Anda bisa
+                menambahkan buku pertama.
               </p>
               <Link
-                href="/library"
-                className="inline-block mt-6 px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-medium transition-colors"
+                href="/admin/upload"
+                className="inline-block px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-bold shadow-lg shadow-brand-500/30 transition-all hover:-translate-y-1"
               >
-                Reset Filter
+                + Upload Buku Sekarang
               </Link>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
               {books.map((book: any) => (
-                <Link
-                  key={book.id}
-                  href={`/reviews/${book.slug}`}
-                  className="group block"
-                >
-                  <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-gray-200 dark:bg-gray-800 mb-5 group-hover:-translate-y-2 card-3d-effect">
-                    {book.book_cover_url ? (
+                <div key={book.id} className="group flex flex-col">
+                  {/* Book Card */}
+                  <Link
+                    href={`/read/${book.slug}`}
+                    className="relative block aspect-[2/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-gray-200 dark:bg-gray-800 mb-4 group-hover:-translate-y-2 card-3d-effect"
+                  >
+                    {book.cover_url ? (
                       <Image
-                        src={book.book_cover_url}
-                        alt={book.book_title}
+                        src={book.cover_url}
+                        alt={book.title}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 p-4 text-center">
                         <IoBook className="w-12 h-12 mb-2" />
-                        <span className="text-xs">{book.book_title}</span>
+                        <span className="text-xs font-semibold">
+                          {book.title}
+                        </span>
                       </div>
                     )}
 
-                    {/* Rating Badge */}
-                    <div className="absolute top-3 right-3 bg-white/90 dark:bg-black/80 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-                      <FaStar className="w-3 h-3 text-yellow-500" />
-                      <span className="text-xs font-bold">{book.rating}</span>
-                    </div>
-
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
-                      <span className="text-white text-xs font-medium uppercase tracking-wider mb-1 bg-brand-600 w-fit px-2 py-0.5 rounded-sm">
-                        Review
-                      </span>
-                      <p className="text-white text-lg font-bold line-clamp-2 leading-tight">
-                        {book.title}
-                      </p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                      <button className="w-full py-2 bg-brand-600 text-white text-sm font-bold rounded-lg shadow-lg">
+                        BACA BUKU
+                      </button>
                     </div>
-                  </div>
+                  </Link>
 
+                  {/* Info */}
                   <div className="space-y-1">
-                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-                      {book.book_title}
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-2 min-h-[3rem] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      <Link href={`/read/${book.slug}`}>{book.title}</Link>
                     </h3>
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400 line-clamp-1">
-                      {book.book_author}
+                      {book.author}
                     </p>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                      {book.categories && (
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-brand-50 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">
-                          {book.categories.name}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

@@ -17,6 +17,7 @@ import {
   IoPerson,
 } from "react-icons/io5";
 import { supabase } from "@/lib/supabase";
+import Swal from "sweetalert2";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -86,19 +87,28 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        // Auto login after registration
-        const result = await signIn("credentials", {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
+        // Simpan email untuk halaman OTP
+        if (typeof window !== "undefined") {
+          localStorage.setItem("registerEmail", formData.email);
+        }
+
+        // Tampilkan Popup Sukses
+        await Swal.fire({
+          icon: "success",
+          title: "Registrasi Berhasil!",
+          text: "Silakan cek email Anda untuk kode OTP.",
+          confirmButtonText: "Masukkan OTP",
+          confirmButtonColor: "#4F46E5",
+          backdrop: `
+                rgba(0,0,123,0.4)
+                url("/images/nyan-cat.gif")
+                left top
+                no-repeat
+            `,
         });
 
-        if (result?.error) {
-          // Registration success but login failed, redirect to login
-          router.push("/auth/login?registered=true");
-        } else {
-          router.push("/dashboard");
-        }
+        // Redirect ke halaman OTP
+        router.push("/auth/verify-otp");
       }
     } catch (err) {
       setErrors({ general: "Terjadi kesalahan. Silakan coba lagi." });
