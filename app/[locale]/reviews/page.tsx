@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ReviewsGridSkeleton } from "@/components/ui/ReviewSkeleton";
-import { IoStar, IoEye, IoHeart } from "react-icons/io5";
+import { IoStar, IoEye, IoHeart, IoFilter, IoClose } from "react-icons/io5";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
+// Define Review Interface
 interface Review {
   id: string;
   title: string;
@@ -19,179 +22,213 @@ interface Review {
   rating: number;
   views: number;
   created_at: string;
-  profiles: {
-    name: string;
-    avatar_url: string | null;
-  };
   categories: {
     name: string;
     slug: string;
   } | null;
-  review_likes: number; // API returns count now
+  review_likes: number;
 }
 
-import { useSearchParams } from "next/navigation";
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
-export default function ReviewsPage() {
-  const t = useTranslations();
+function ReviewsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
+  const categoryParam = searchParams.get("category");
 
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch Categories for Filter
+  useEffect(() => {
+    async function fetchCats() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+      if (data) setCategories(data);
+    }
+    fetchCats();
+  }, []);
+
+  // Fetch Reviews when params change
   useEffect(() => {
     fetchReviews();
-  }, [search]); // Re-fetch when search changes
+  }, [search, categoryParam]);
 
   const fetchReviews = async () => {
     try {
       setIsLoading(true);
       let url = "/api/reviews?limit=12";
-      if (search) {
-        url += `&search=${encodeURIComponent(search)}`;
-      }
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (categoryParam)
+        url += `&category=${encodeURIComponent(categoryParam)}`;
 
       const response = await fetch(url);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
+      if (!response.ok) throw new Error("Failed to fetch reviews");
 
       const data = await response.json();
       setReviews(data.reviews || []);
     } catch (err) {
       console.error("Error fetching reviews:", err);
-      setError("Gagal memuat review. Silakan coba lagi.");
+      setError("Gagal memuat review.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-12">
-      <div className="container-custom">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-5xl font-bold mb-4 gradient-text">
-            Semua Review Buku
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Jelajahi koleksi review buku terbaik dari komunitas kami
-          </p>
-        </motion.div>
+  const updateFilter = (cSlug: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (cSlug) params.set("category", cSlug);
+    else params.delete("category");
+    router.push(`/reviews?${params.toString()}`);
+  };
 
-        {/* Content */}
-        {isLoading ? (
-          <ReviewsGridSkeleton count={12} />
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+  const clearSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    router.push(`/reviews?${params.toString()}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4">
+      <div className="container-custom">
+        {/* Header & Controls */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
+              {categoryParam
+                ? `Kategori: ${categories.find((c) => c.slug === categoryParam)?.name || categoryParam}`
+                : "Semua Review"}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              {reviews.length} review ditemukan
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Filter Dropdown */}
+            <div className="relative group">
+              <select
+                className="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+                onChange={(e) => updateFilter(e.target.value || null)}
+                value={categoryParam || ""}
+              >
+                <option value="">Semua Kategori</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <IoFilter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Search Feedback */}
+        {search && (
+          <div className="mb-8 flex items-center gap-2 bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 inline-flex">
+            <span>
+              Hasil pencarian untuk: <strong>&quot;{search}&quot;</strong>
+            </span>
             <button
-              onClick={fetchReviews}
-              className="mt-4 px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
+              onClick={clearSearch}
+              className="ml-2 hover:bg-brand-100 dark:hover:bg-brand-800 rounded-full p-1"
             >
-              Coba Lagi
+              <IoClose />
             </button>
           </div>
+        )}
+
+        {/* Grid Content */}
+        {isLoading ? (
+          <ReviewsGridSkeleton count={8} />
         ) : reviews.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">
-              Belum ada review. Jadilah yang pertama membuat review!
+          <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+              Tidak ada hasil yang ditemukan
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Coba kata kunci lain atau ubah filter kategori.
             </p>
-            <Link
-              href="/dashboard/reviews/new"
-              className="inline-block mt-4 px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
-            >
-              Buat Review
-            </Link>
+            {(search || categoryParam) && (
+              <button
+                onClick={() => router.push("/reviews")}
+                className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Reset Filter
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {reviews.map((review, index) => (
               <motion.div
                 key={review.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <Link href={`/reviews/${review.slug}`}>
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-card hover:shadow-glow-md transition-all duration-300 overflow-hidden group h-full flex flex-col">
-                    {/* Book Cover */}
-                    <div className="relative h-64 bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900 dark:to-brand-950 overflow-hidden">
+                <Link
+                  href={`/reviews/${review.slug}`}
+                  className="group h-full flex flex-col"
+                >
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                    {/* Cover */}
+                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-200">
                       {review.book_cover_url ? (
                         <Image
                           src={review.book_cover_url}
                           alt={review.book_title}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-32 h-48 bg-gradient-to-br from-brand-300 to-brand-400 rounded-lg shadow-lg flex items-center justify-center">
-                            <span className="text-white text-4xl">📖</span>
-                          </div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No Cover
                         </div>
                       )}
-
-                      {/* Category Badge */}
-                      {review.categories && (
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-full text-xs font-semibold text-brand-600 dark:text-brand-400">
-                            {review.categories.name}
-                          </span>
-                        </div>
-                      )}
+                      <div className="absolute top-3 left-3">
+                        <span className="px-2 py-1 bg-white/90 dark:bg-black/80 backdrop-blur-sm rounded-md text-xs font-bold text-gray-800 dark:text-white shadow-sm flex items-center gap-1">
+                          <IoStar className="text-yellow-400" /> {review.rating}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col">
-                      {/* Rating */}
-                      <div className="flex items-center gap-1 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                          <IoStar
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < review.rating
-                                ? "text-yellow-400"
-                                : "text-gray-300 dark:text-gray-600"
-                            }`}
-                          />
-                        ))}
-                      </div>
+                    <div className="p-5 flex flex-col flex-1">
+                      {review.categories && (
+                        <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 mb-2 uppercase tracking-wider">
+                          {review.categories.name}
+                        </span>
+                      )}
 
-                      {/* Book Title */}
-                      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white line-clamp-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight mb-2 line-clamp-2 group-hover:text-brand-600 transition-colors">
                         {review.book_title}
                       </h3>
 
-                      {/* Author */}
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        oleh {review.book_author}
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        {review.book_author}
                       </p>
 
-                      {/* Excerpt */}
-                      <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-1">
-                        {review.excerpt}
-                      </p>
-
-                      {/* Meta */}
-                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-4">
-                          <span className="flex items-center gap-1">
-                            <IoEye className="w-4 h-4" />
-                            {review.views}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <IoHeart className="w-4 h-4" />
-                            {review.review_likes || 0}
-                          </span>
-                        </div>
+                      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <IoEye /> {review.views}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <IoHeart /> {review.review_likes}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -202,5 +239,13 @@ export default function ReviewsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <Suspense fallback={<ReviewsGridSkeleton count={8} />}>
+      <ReviewsContent />
+    </Suspense>
   );
 }
