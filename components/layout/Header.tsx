@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 import {
   IoMenu,
   IoClose,
@@ -126,6 +127,9 @@ export function Header() {
 
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
+
+            {/* Notification Bell */}
+            {session && <NotificationBell />}
 
             {/* Auth Buttons / User Menu - Desktop */}
             <div className="hidden md:flex items-center gap-2 relative">
