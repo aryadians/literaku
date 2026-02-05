@@ -1,301 +1,191 @@
-import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
-const dummyReviews = [
+const dummyBooksData = [
   {
-    title: "Harry Potter dan Batu Bertuah",
-    book_title: "Harry Potter and the Sorcerer's Stone",
-    book_author: "J.K. Rowling",
-    book_cover_url:
-      "https://m.media-amazon.com/images/I/71RVt35ZAbL._AC_UF1000,1000_QL80_.jpg",
-    content: `# Sihir yang Memikat Hati
-
-**Penerbit:** Bloomsbury (1997)
-**Genre:** Fantasi
-
-Buku yang memulai segalanya. J.K. Rowling berhasil menciptakan dunia sihir yang begitu detail dan hidup. Kisah Harry, anak yatim piatu yang menemukan bahwa dia adalah penyihir, adalah kisah klasik tentang kebaikan melawan kejahatan.
-
-## Karakter
-Pengembangan karakter sangat kuat. Kita tidak hanya peduli pada Harry, tapi juga Ron dan Hermione. Persahabatan mereka terasa tulus dan tumbuh secara alami.
-
-## Kesimpulan
-Wajib dibaca oleh siapa saja, tua maupun muda. Ini bukan sekadar buku anak-anak; ini adalah pintu gerbang ke imajinasi tanpa batas.`,
-    rating: 5,
-    category_slug: "fiction",
+    title: "Atomic Habits",
+    author: "James Clear",
+    year: 2018,
+    description: "Perubahan kecil yang memberikan hasil luar biasa.",
+    category: "Self-Help",
+    cover_url: "https://m.media-amazon.com/images/I/81wgcld4wxL.jpg",
   },
   {
-    title: "The Alchemist: Sang Alkemis",
-    book_title: "The Alchemist",
-    book_author: "Paulo Coelho",
-    book_cover_url: "https://m.media-amazon.com/images/I/51Z0nLAfLmL.jpg",
-    content: `# Mengejar Takdir Pribadi
-
-**Penerbit:** HarperOne (1988)
-**Genre:** Fiksi / Filosofi
-
-Kisah sederhana tentang Santiago, seorang gembala Andalusia yang bermimpi menemukan harta karun di piramida Mesir. Namun, perjalanannya mengajarkan bahwa harta yang sesungguhnya adalah pelajaran yang didapat sepanjang jalan.
-
-## Kutipan Favorit
-"When you want something, all the universe conspires in helping you to achieve it."
-
-## Review
-Bokunya tipis tapi penuh makna. Sangat inspiratif bagi siapa saja yang sedang ragu mengejar mimpinya.`,
-    rating: 5,
-    category_slug: "fiction",
+    title: "The Psychology of Money",
+    author: "Morgan Housel",
+    year: 2020,
+    description:
+      "Pelajaran abadi mengenai kekayaan, ketamakan, dan kebahagiaan.",
+    category: "Business",
+    cover_url: "https://m.media-amazon.com/images/I/81Dky+t0X0L.jpg",
   },
   {
-    title: "Atomic Habits: Perubahan Kecil yang Memberikan Hasil Luar Biasa",
-    book_title: "Atomic Habits",
-    book_author: "James Clear",
-    book_cover_url: "https://m.media-amazon.com/images/I/81wgcld4wxL.jpg",
-    content: `# Sistem, Bukan Sekadar Tujuan
-
-**Penerbit:** Avery (2018)
-**Genre:** Self-Help
-
-James Clear menawarkan kerangka kerja yang terbukti untuk meningkatkan kemampuan setiap hari. Buku ini bukan tentang motivasi sesaat, tapi tentang membangun sistem.
-
-## 1% Lebih Baik
-Konsep utamanya adalah perbaikan 1% setiap hari. Jika Anda bisa menjadi 1% lebih baik setiap hari selama setahun, Anda akan menjadi 37 kali lebih baik pada akhir tahun.
-
-## Kesimpulan
-Sangat praktis dan aplikatif.`,
-    rating: 5,
-    category_slug: "self-help",
+    title: "Sapiens: A Brief History of Humankind",
+    author: "Yuval Noah Harari",
+    year: 2011,
+    description: "Riwayat singkat umat manusia dari zaman batu hingga abad 21.",
+    category: "History",
+    cover_url: "https://m.media-amazon.com/images/I/713jIoMO3UL.jpg",
   },
   {
-    title: "Start with Why",
-    book_title: "Start with Why",
-    book_author: "Simon Sinek",
-    book_cover_url: "https://m.media-amazon.com/images/I/71vK0WVQ4rL.jpg",
-    content: `# Mengapa Beberapa Pemimpin Menginspirasi?
-
-**Penerbit:** Portfolio (2009)
-**Genre:** Bisnis / Kepemimpinan
-
-Sinek berargumen bahwa orang tidak membeli "apa" yang Anda lakukan, tapi "mengapa" Anda melakukannya. Dia menggunakan "Golden Circle" (Why, How, What) untuk menjelaskan kesuksesan Apple, Martin Luther King Jr., dan Wright Brothers.
-
-## Review
-Buku ini mengubah cara saya memandang pemasaran dan kepemimpinan. Sangat direkomendasikan untuk entrepreneur.`,
-    rating: 4,
-    category_slug: "business",
+    title: "Clean Code",
+    author: "Robert C. Martin",
+    year: 2008,
+    description: "Panduan untuk menulis kode yang bersih dan mudah dipelihara.",
+    category: "Science",
+    cover_url: "https://m.media-amazon.com/images/I/41xShlnTZTL.jpg",
   },
   {
-    title: "Steve Jobs",
-    book_title: "Steve Jobs",
-    book_author: "Walter Isaacson",
-    book_cover_url: "https://m.media-amazon.com/images/I/71sV+iIEWdL.jpg",
-    content: `# Biografi Sang Visioner
-
-**Penerbit:** Simon & Schuster (2011)
-**Genre:** Biografi
-
-Buku ini memberikan pandangan yang jujur dan brutal tentang kehidupan Steve Jobs. Isaacson tidak berusaha memoles citra Jobs; dia menampilkan sisi jeniusnya sekaligus sisi temperamentalnya.
-
-## Inovasi
-Kita diajak menyelami proses lahirnya produk-produk ikonik: Macintosh, iPod, iPhone, dan iPad. Dedikasi Jobs pada kesempurnaan desain sangat mengagumkan.`,
-    rating: 5,
-    category_slug: "biography",
-  },
-  {
-    title: "A Brief History of Time",
-    book_title: "A Brief History of Time",
-    book_author: "Stephen Hawking",
-    book_cover_url:
-      "https://m.media-amazon.com/images/I/51+GySc8ExL._SY445_SX342_.jpg",
-    content: `# Menjelajahi Alam Semesta
-
-**Penerbit:** Bantam Books (1988)
-**Genre:** Sains
-
-Stephen Hawking mencoba menjelaskan konsep-konsep kosmologi yang rumit (Big Bang, Black Holes, Light Cones) dengan bahasa yang bisa dimengerti orang awam.
-
-## Kesan
-Meskipun "populer", buku ini tetap menantang. Tapi usaha untuk memahaminya sepadan. Membaca ini membuat kita merasa kecil di hadapan alam semesta yang maha luas.`,
-    rating: 4,
-    category_slug: "science",
-  },
-  {
-    title: "Sapiens: Riwayat Singkat Umat Manusia",
-    book_title: "Sapiens",
-    book_author: "Yuval Noah Harari",
-    book_cover_url: "https://m.media-amazon.com/images/I/713jIoMO3UL.jpg",
-    content: `# Sejarah yang Memprovokasi
-
-**Penerbit:** Harvill Secker (2014)
-**Genre:** Sejarah / Non-Fiksi
-
-Harari membawa kita berlari melintasi sejarah spesies kita. Bahasannya tentang "Revolusi Kognitif" dan bagaimana fiksi (uang, negara, agama) menyatukan manusia sangat brilian.
-
-## Kritik
-Beberapa bagian mungkin terlalu generalisir, tapi sebagai pengantar sejarah makro, buku ini tak tertandingi.`,
-    rating: 5,
-    category_slug: "history",
+    title: "The Alchemist",
+    author: "Paulo Coelho",
+    year: 1988,
+    description: "Novel tentang mengejar mimpi dan mendengarkan kata hati.",
+    category: "Fiction",
+    cover_url: "https://m.media-amazon.com/images/I/51Z0nLAfLmL.jpg",
   },
   {
     title: "Rich Dad Poor Dad",
-    book_title: "Rich Dad Poor Dad",
-    book_author: "Robert T. Kiyosaki",
-    book_cover_url: "https://m.media-amazon.com/images/I/81bsw6fnUiL.jpg",
-    content: `# Melek Finansial
-
-**Penerbit:** Warner Books (1997)
-**Genre:** Bisnis / Keuangan
-
-Buku yang wajib dibaca untuk memahami perbedaan aset dan liabilitas. Kiyosaki mengajarkan bahwa menabung saja tidak cukup; kita harus berinvestasi.
-
-## Pelajaran Utama
-"Don't work for money; make money work for you."`,
-    rating: 4,
-    category_slug: "business",
+    author: "Robert T. Kiyosaki",
+    year: 1997,
+    description:
+      "Apa yang diajarkan orang kaya pada anak-anak mereka tentang uang.",
+    category: "Business",
+    cover_url: "https://m.media-amazon.com/images/I/81bsw6fnUiL.jpg",
   },
   {
-    title: "The Lord of the Rings: The Fellowship of the Ring",
-    book_title: "The Fellowship of the Ring",
-    book_author: "J.R.R. Tolkien",
-    book_cover_url: "https://m.media-amazon.com/images/I/91jBDaLnqPL.jpg",
-    content: `# Epik Fantasi Terbesar
-
-**Penerbit:** Allen & Unwin (1954)
-**Genre:** Fantasi
-
-Dunia Middle-earth yang dibangun Tolkien begitu kaya dengan sejarah, bahasa, dan geografi. Perjalanan Frodo membawa Cincin terasa sangat berat dan nyata.
-
-## World Building
-Tidak ada penulis lain yang bisa menyaingi detail world-building Tolkien.`,
-    rating: 5,
-    category_slug: "fiction",
+    title: "Thinking, Fast and Slow",
+    author: "Daniel Kahneman",
+    year: 2011,
+    description:
+      "Dua sistem berpikir yang mengendalikan penilaian dan keputusan kita.",
+    category: "Non-Fiction",
+    cover_url: "https://m.media-amazon.com/images/I/61fdrEuPJwL.jpg",
   },
   {
-    title: "Educated",
-    book_title: "Educated",
-    book_author: "Tara Westover",
-    book_cover_url: "https://m.media-amazon.com/images/I/81WojUxbbFL.jpg",
-    content: `# Kekuatan Pendidikan
-
-**Penerbit:** Random House (2018)
-**Genre:** Biografi / Memoar
-
-Kisah nyata Tara Westover yang tumbuh di keluarga survivalist di pegunungan Idaho, tidak pernah sekolah hingga usia 17 tahun, namun akhirnya berhasil meraih gelar PhD dari Cambridge.
-
-## Emosional
-Kisah tentang loyalitas keluarga vs keinginan untuk berkembang. Sangat menyentuh.`,
-    rating: 5,
-    category_slug: "biography",
+    title: "1984",
+    author: "George Orwell",
+    year: 1949,
+    description: "Novel distopia klasik tentang pengawasan pemerintah.",
+    category: "Fiction",
+    cover_url: "https://m.media-amazon.com/images/I/71kxa1-0mfL.jpg",
+  },
+  {
+    title: "Harry Potter and the Sorcerer's Stone",
+    author: "J.K. Rowling",
+    year: 1997,
+    description: "Petualangan pertama Harry Potter di dunia sihir.",
+    category: "Fiction",
+    cover_url: "https://m.media-amazon.com/images/I/71-++hbbERL.jpg",
+  },
+  {
+    title: "Steve Jobs",
+    author: "Walter Isaacson",
+    year: 2011,
+    description: "Biografi eksklusif pendiri Apple, Steve Jobs.",
+    category: "Biography",
+    cover_url: "https://m.media-amazon.com/images/I/71sVqsXSJPL.jpg",
   },
 ];
 
-export async function GET(request: NextRequest) {
+const SAMPLE_PDF =
+  "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
+
+    // 1. Get User (Admin)
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
+    let userId = authUser?.id;
 
-    let user = authUser;
-
-    // Bypass auth for seeding script via curl
-    if (!user) {
-      // Try to get the first user
-      const { data: firstUser } = await supabase
+    if (!userId) {
+      // Fallback to first profile if running without auth context (e.g. from curl)
+      const { data: firstProfile } = await supabase
         .from("profiles")
         .select("id")
         .limit(1)
         .single();
-      if (firstUser) {
-        user = { id: firstUser.id } as any;
-      } else {
-        return NextResponse.json(
-          {
-            error: "Unauthorized",
-            message:
-              "TIDAK ADA USER DITEMUKAN. Silakan daftar akun (Register) terlebih dahulu di website agar data dummy bisa dikaitkan ke akun tersebut.",
-          },
-          { status: 401 },
-        );
-      }
+      if (firstProfile) userId = firstProfile.id;
+      else
+        return NextResponse.json({ error: "No users found" }, { status: 400 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const execute = searchParams.get("execute") === "true";
-
-    if (!execute) {
-      return NextResponse.json({
-        message:
-          "Ready to seed 10 reviews. Add ?execute=true param to confirm.",
-        count: dummyReviews.length,
-        preview: dummyReviews[0],
-      });
-    }
-
-    // 1. Get Category IDs map
+    // 2. Get Categories Map
     const { data: categories } = await supabase
       .from("categories")
-      .select("id, slug");
+      .select("id, name");
+    const catMap: Record<string, string> = {};
+    categories?.forEach((c) => {
+      catMap[c.name] = c.id;
+    });
 
-    if (!categories)
-      return NextResponse.json(
-        { error: "No categories found" },
-        { status: 500 },
-      );
+    // 3. Insert Books (PDF Library)
+    const booksPayload = dummyBooksData.map((b) => ({
+      title: b.title,
+      slug: b.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      author: b.author,
+      description: b.description,
+      year: b.year,
+      category_id: catMap[b.category] || categories?.[0]?.id,
+      cover_url: b.cover_url,
+      pdf_url: SAMPLE_PDF,
+      uploaded_by: userId,
+    }));
 
-    const catMap = categories.reduce((acc: any, cat: any) => {
-      acc[cat.slug] = cat.id;
-      return acc;
-    }, {});
+    const { error: bookError } = await supabase
+      .from("books")
+      .upsert(booksPayload, { onConflict: "slug" });
 
-    // 2. Insert Data
-    const results = [];
-    for (const review of dummyReviews) {
-      // Find rough category match or default to Fiction
-      let catId = catMap[review.category_slug];
-      if (!catId) catId = catMap["fiction"]; // Fallback
+    // 4. Insert Reviews (Linked to books conceptually, separate table)
+    // We'll also seed reviews for these books so "Semua Review" is not empty
+    const reviewsPayload = dummyBooksData.map((b) => ({
+      user_id: userId,
+      title: `Review: ${b.title}`,
+      slug: `review-${b.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      book_title: b.title,
+      book_author: b.author,
+      book_cover_url: b.cover_url,
+      category_id: catMap[b.category] || categories?.[0]?.id,
+      rating: 5,
+      content: `
+# Review ${b.title}
 
-      // Create slug
-      const slug =
-        review.title
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, "")
-          .replace(/\s+/g, "-") +
-        "-" +
-        Date.now().toString().slice(-4) +
-        Math.floor(Math.random() * 1000);
+Buku **${b.title}** karya ${b.author} adalah bacaan yang sangat direkomendasikan.
 
-      const { data, error } = await supabase
-        .from("book_reviews")
-        .insert({
-          user_id: user.id,
-          category_id: catId,
-          title: review.title,
-          slug: slug,
-          book_title: review.book_title,
-          book_author: review.book_author,
-          book_cover_url: review.book_cover_url,
-          content: review.content,
-          excerpt: review.content.substring(0, 150) + "...",
-          rating: review.rating,
-          published: true,
-          featured: review.rating === 5 && Math.random() > 0.7, // Randomly feature some 5-star books
-          views: Math.floor(Math.random() * 500) + 50, // Random views
-        })
-        .select("id, title");
+**Publisher:** Penerbit Dummy
+**Tahun:** ${b.year}
 
-      results.push({
-        title: review.title,
-        status: error ? "Failed" : "Success",
-        error: error?.message,
+## Sinopsis
+${b.description}
+
+## Pendapat Saya
+Buku ini memberikan wawasan yang sangat dalam. Penulis berhasil menyampaikan gagasan kompleks dengan bahasa yang mudah dipahami. Sangat cocok untuk dibaca di waktu santai maupun untuk studi serius.
+
+Sangat merekomendasikan buku ini untuk siapa saja yang tertarik dengan topik ${b.category}.
+        `,
+      excerpt: b.description,
+      published: true,
+    }));
+
+    const { error: reviewError } = await supabase
+      .from("book_reviews")
+      .upsert(reviewsPayload, { onConflict: "slug" });
+
+    if (bookError || reviewError) {
+      return NextResponse.json({
+        success: false,
+        bookError: bookError?.message,
+        reviewError: reviewError?.message,
       });
     }
 
     return NextResponse.json({
-      message: "Seeding completed",
-      results,
+      success: true,
+      message: "10 Books & 10 Reviews seeded successfully!",
     });
-  } catch (error) {
-    console.error("Seed Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
