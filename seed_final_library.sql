@@ -29,7 +29,7 @@ BEGIN
   INSERT INTO public.books (title, slug, author, description, year, category_id, cover_url, pdf_url, uploaded_by)
   VALUES
   ('Atomic Habits', 'atomic-habits-pdf', 'James Clear', 'Perubahan kecil yang memberikan hasil luar biasa.', 2018, v_cat_selfhelp, 'https://m.media-amazon.com/images/I/81wgcld4wxL.jpg', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),
-  ('The Psychology of Money', 'psychology-money-pdf', 'Morgan Housel', 'Pelajaran abadi mengenai kekayaan, ketamakan, dan kebahagiaan.', 2020, v_cat_business, 'https://m.media-amazon.com/images/I/81Dky+t0X0L.jpg', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),
+  ('The Psychology of Money', 'psychology-money-pdf', 'Morgan Housel', 'Pelajaran abadi mengenai kekayaan, ketamakan, dan kebahagiaan.', 2020, v_cat_business, 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),
   ('Sapiens', 'sapiens-pdf', 'Yuval Noah Harari', 'Riwayat singkat umat manusia.', 2011, v_cat_history, 'https://m.media-amazon.com/images/I/713jIoMO3UL.jpg', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),
   ('Clean Code', 'clean-code-pdf', 'Robert C. Martin', 'Panduan kode bersih.', 2008, v_cat_science, 'https://m.media-amazon.com/images/I/41xShlnTZTL.jpg', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),
   ('The Alchemist', 'alchemist-pdf', 'Paulo Coelho', 'Mengejar mimpi.', 1988, v_cat_fiction, 'https://m.media-amazon.com/images/I/51Z0nLAfLmL.jpg', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', v_admin_id),

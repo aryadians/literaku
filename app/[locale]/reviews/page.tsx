@@ -41,50 +41,28 @@ function ReviewsContent() {
   const search = searchParams.get("search");
   const categoryParam = searchParams.get("category");
 
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Construct API URL key for SWR
+  let url = "/api/reviews?limit=12";
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (categoryParam) url += `&category=${encodeURIComponent(categoryParam)}`;
 
-  // Fetch Categories for Filter
-  useEffect(() => {
-    async function fetchCats() {
+  // Use SWR for reviews
+  const { data, error, isLoading } = useSWR(url, fetcher);
+  const reviews = data?.reviews || [];
+
+  // Categories can also use SWR for caching!
+  const { data: categoriesData } = useSWR(
+    "/api/categories-simple",
+    async () => {
       const supabase = createClient();
       const { data } = await supabase
         .from("categories")
         .select("*")
         .order("name");
-      if (data) setCategories(data);
-    }
-    fetchCats();
-  }, []);
-
-  // Fetch Reviews when params change
-  useEffect(() => {
-    fetchReviews();
-  }, [search, categoryParam]);
-
-  const fetchReviews = async () => {
-    try {
-      setIsLoading(true);
-      let url = "/api/reviews?limit=12";
-      if (search) url += `&search=${encodeURIComponent(search)}`;
-      if (categoryParam)
-        url += `&category=${encodeURIComponent(categoryParam)}`;
-
-      const response = await fetch(url);
-
-      if (!response.ok) throw new Error("Failed to fetch reviews");
-
-      const data = await response.json();
-      setReviews(data.reviews || []);
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-      setError("Gagal memuat review.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return data || [];
+    },
+  );
+  const categories = categoriesData || [];
 
   const updateFilter = (cSlug: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -98,6 +76,14 @@ function ReviewsContent() {
     params.delete("search");
     router.push(`/reviews?${params.toString()}`);
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 flex items-center justify-center">
+        <p className="text-red-500 dark:text-red-400">Gagal memuat review.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4">
