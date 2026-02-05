@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr"; // Added SWR import
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,33 +16,41 @@ import {
 } from "react-icons/io5";
 
 export default function HomePage() {
-  const [books, setBooks] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use SWR for caching and performance
+  // We can use a custom hook or just swr
+  // Fetching Books (Mocking API endpoint since we don't have one for "latest books" specifically,
+  // or we can use Supabase client inside fetcher? SWR allows function fetcher)
 
-  useEffect(() => {
-    async function fetchData() {
+  // Custom fetcher for Supabase queries to keep it clean or use the API routes if available.
+  // Since we haven't created /api/books yet, we can't use SWR with URL for books.
+  // We should create /api/books or keep using Supabase client but wrapped in SWR.
+  // Let's use the inline SWR fetcher for now for simplicity and performance.
+
+  const { data: booksData } = useSWR("home-books", async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("books")
+      .select("*, categories(name)")
+      .order("created_at", { ascending: false })
+      .limit(4);
+    return data || [];
+  });
+  const books = booksData || [];
+
+  const { data: reviewsData, isLoading: reviewsLoading } = useSWR(
+    "home-reviews",
+    async () => {
       const supabase = createClient();
-      // Parallel Fetching
-      const [booksRes, reviewsRes] = await Promise.all([
-        supabase
-          .from("books")
-          .select("*, categories(name)")
-          .order("created_at", { ascending: false })
-          .limit(4),
-        supabase
-          .from("book_reviews")
-          .select("*, categories(name)")
-          .order("created_at", { ascending: false })
-          .limit(3),
-      ]);
-
-      if (booksRes.data) setBooks(booksRes.data);
-      if (reviewsRes.data) setReviews(reviewsRes.data);
-      setIsLoading(false);
-    }
-    fetchData();
-  }, []);
+      const { data } = await supabase
+        .from("book_reviews")
+        .select("*, categories(name), profiles(name)")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data || [];
+    },
+  );
+  const reviews = reviewsData || [];
+  const isLoading = !booksData && !reviewsData; // Simplified loading state
 
   // Animation Variants for Staggered Effects
   const containerVariants = {
