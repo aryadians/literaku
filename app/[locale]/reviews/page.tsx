@@ -9,6 +9,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
+import { Button } from "@/components/ui/Button";
+import { IoAdd } from "react-icons/io5";
 
 // Define Review Interface
 interface Review {
@@ -102,6 +106,16 @@ function ReviewsContent() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link href="/reviews/create">
+              <Button size="md" className="gap-2 hidden md:inline-flex">
+                <IoAdd className="text-xl" /> Tulis Review
+              </Button>
+              {/* Mobile Icon Button */}
+              <Button size="md" className="md:hidden px-3 aspect-square">
+                <IoAdd className="text-xl" />
+              </Button>
+            </Link>
+
             {/* Filter Dropdown */}
             <div className="relative group">
               <select

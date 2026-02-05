@@ -151,11 +151,11 @@ export function Header() {
                         <IoPerson className="w-full h-full p-1.5 text-gray-400" />
                       )}
                     </div>
-                    <span className="text-sm font-medium max-w-[100px] truncate">
+                    <span className="text-sm font-medium max-w-[100px] truncate text-gray-700 dark:text-gray-200">
                       {session.user?.name?.split(" ")[0]}
                     </span>
                     <IoChevronDown
-                      className={`w-4 h-4 transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 transition-transform text-gray-500 dark:text-gray-400 ${isUserMenuOpen ? "rotate-180" : ""}`}
                     />
                   </button>
 
