@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const search = searchParams.get("search");
 
+    const sort = searchParams.get("sort") || "newest";
+
     // Pagination
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -46,9 +48,20 @@ export async function GET(request: NextRequest) {
       `,
         { count: "exact" },
       )
-      .eq("published", true)
-      .order("created_at", { ascending: false })
-      .range(from, to);
+      .eq("published", true);
+
+    // Sorting Logic
+    if (sort === "popular") {
+      query = query.order("views", { ascending: false });
+    } else if (sort === "oldest") {
+      query = query.order("created_at", { ascending: true });
+    } else {
+      // Default: newest
+      query = query.order("created_at", { ascending: false });
+    }
+
+    // Apply Range
+    query = query.range(from, to);
 
     if (featured) {
       query = query.eq("featured", true);

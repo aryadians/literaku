@@ -44,9 +44,10 @@ function ReviewsContent() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
   const categoryParam = searchParams.get("category");
+  const sortParam = searchParams.get("sort") || "newest";
 
   // Construct API URL key for SWR
-  let url = "/api/reviews?limit=12";
+  let url = `/api/reviews?limit=12&sort=${sortParam}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (categoryParam) url += `&category=${encodeURIComponent(categoryParam)}`;
 
@@ -116,21 +117,54 @@ function ReviewsContent() {
               </Button>
             </Link>
 
-            {/* Filter Dropdown */}
-            <div className="relative group">
-              <select
-                className="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-                onChange={(e) => updateFilter(e.target.value || null)}
-                value={categoryParam || ""}
-              >
-                <option value="">Semua Kategori</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <IoFilter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            {/* Sort & Filter Controls */}
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Filter Dropdown */}
+              <div className="relative group">
+                <select
+                  className="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer text-sm"
+                  onChange={(e) => updateFilter(e.target.value || null)}
+                  value={categoryParam || ""}
+                >
+                  <option value="">Semua Kategori</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <IoFilter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-4 h-4" />
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative group">
+                <select
+                  className="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer text-sm"
+                  onChange={(e) => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set("sort", e.target.value);
+                    router.push(`/reviews?${params.toString()}`);
+                  }}
+                  defaultValue={searchParams.get("sort") || "newest"}
+                >
+                  <option value="newest">Terbaru</option>
+                  <option value="popular">Terpopuler</option>
+                  <option value="oldest">Terlama</option>
+                </select>
+                <svg
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </div>
             </div>
           </div>
         </div>

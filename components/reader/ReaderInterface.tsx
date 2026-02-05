@@ -87,9 +87,20 @@ export default function ReaderInterface({ book }: ReaderInterfaceProps) {
               title={book.title}
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-              <IoBook className="w-16 h-16 mb-4 opacity-50" />
-              <p>File PDF tidak tersedia.</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+              <IoBook className="w-20 h-20 mb-4 opacity-50 text-gray-600" />
+              <h3 className="text-xl font-bold text-gray-300 mb-2">
+                PDF Tidak Tersedia
+              </h3>
+              <p className="text-gray-500 max-w-sm mb-6">
+                File PDF untuk buku ini mungkin belum diunggah atau link rusak.
+              </p>
+              <Link
+                href="/library"
+                className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+              >
+                Kembali ke Perpustakaan
+              </Link>
             </div>
           )}
         </div>
