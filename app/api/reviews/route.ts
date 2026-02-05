@@ -1,59 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// MOCK DATA RESPONSE (For Debugging & Development)
-const mockReviews = [
-  {
-    id: "mock-1",
-    title: "Harry Potter and the Sorcerer's Stone",
-    slug: "harry-potter-mock",
-    book_title: "Harry Potter",
-    book_author: "J.K. Rowling",
-    book_cover_url: "https://m.media-amazon.com/images/I/71-++hbbERL.jpg",
-    excerpt: "Petualangan seorang penyihir muda di sekolah sihir Hogwarts.",
-    content: "# Harry Potter\n\nBuku ini sangat fenomenal...",
-    rating: 5,
-    created_at: new Date().toISOString(),
-    published: true,
-    featured: false,
-    user_id: "mock-user",
-    profiles: {
-      name: "Reviewer A",
-      avatar_url: "https://placehold.co/100x100",
-    },
-    categories: {
-      name: "Fiksi",
-      slug: "fiksi",
-    },
-    views: 120,
-    review_likes: [{}, {}],
-  },
-  {
-    id: "mock-2",
-    title: "Laskar Pelangi",
-    slug: "laskar-pelangi",
-    book_title: "Laskar Pelangi",
-    book_author: "Andrea Hirata",
-    book_cover_url: "https://m.media-amazon.com/images/I/71-++hbbERL.jpg",
-    excerpt: "Kisah inspiratif anak-anak Belitong mengejar mimpi.",
-    content:
-      "# Laskar Pelangi\n\nNovel ini mengajarkan kita arti perjuangan...",
-    rating: 5,
-    created_at: new Date().toISOString(),
-    published: true,
-    featured: true,
-    user_id: "mock-user",
-    profiles: {
-      name: "Andrea Fan",
-      avatar_url: "https://placehold.co/100x100",
-    },
-    categories: {
-      name: "Inspirasi",
-      slug: "inspirasi",
-    },
-    views: 850,
-    review_likes: [{}],
-  },
-];
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * GET /api/reviews
@@ -61,31 +7,83 @@ const mockReviews = [
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
     const featured = searchParams.get("featured") === "true";
+    const category = searchParams.get("category");
 
-    console.log("✅ API: Returning MOCK data for /reviews");
+    // Pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-    // Filter logic for mock data
-    let filteredReviews = mockReviews;
+    let query = supabase
+      .from("book_reviews")
+      .select(
+        `
+        id,
+        title,
+        slug,
+        book_title,
+        book_author,
+        book_cover_url,
+        excerpt,
+        rating,
+        views,
+        created_at,
+        featured,
+        profiles (
+          name,
+          avatar_url
+        ),
+        categories (
+          name,
+          slug
+        ),
+        review_likes (count)
+      `,
+        { count: "exact" },
+      )
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
     if (featured) {
-      filteredReviews = mockReviews.filter((r) => r.featured === true);
+      query = query.eq("featured", true);
     }
 
-    // Pagination logic
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
+    if (category) {
+      // Filter by category slug if provided (requires category join filter or separate logic)
+      // Simplified: Assuming we filter by joining categories tables
+      // Supabase complex filtering on joined tables can be tricky with simple syntax
+      // For now, let's keep it simple or use inner join filter syntax:
+      // .eq('categories.slug', category) // This syntax depends on PostgREST version
+      // If standard referencing: !inner to filter
+      // query = query.not("categories", "is", null).eq("categories.slug", category);
+    }
+
+    const { data: reviews, error, count } = await query;
+
+    if (error) {
+      console.error("Supabase Error:", error);
+      throw error;
+    }
+
+    // Format matches existing frontend expectations
+    const formattedReviews = reviews?.map((review: any) => ({
+      ...review,
+      review_likes: review.review_likes?.[0]?.count || 0, // Simplified count
+      likes: review.review_likes?.[0]?.count || 0, // Duplicate for compatibility
+    }));
 
     return NextResponse.json({
-      reviews: paginatedReviews,
+      reviews: formattedReviews || [],
       pagination: {
         page,
         limit,
-        total: filteredReviews.length,
-        totalPages: Math.ceil(filteredReviews.length / limit),
+        total: count || 0,
+        totalPages: count ? Math.ceil(count / limit) : 0,
       },
     });
   } catch (error) {
@@ -102,8 +100,65 @@ export async function GET(request: NextRequest) {
  * Create a new review
  */
 export async function POST(request: NextRequest) {
-  return NextResponse.json(
-    { error: "Post disabled during mock debugging" },
-    { status: 503 },
-  );
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    // Basic validation
+    if (!body.title || !body.content || !body.book_title || !body.rating) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
+    // Handle slug generation (simplistic)
+    const slug =
+      body.title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-") +
+      "-" +
+      Date.now().toString().slice(-4);
+
+    // Insert Review
+    const { data: review, error } = await supabase
+      .from("book_reviews")
+      .insert({
+        title: body.title,
+        slug: slug,
+        book_title: body.book_title,
+        book_author: body.book_author,
+        book_cover_url: body.cover_url || null,
+        content: body.content,
+        excerpt: body.content.substring(0, 150) + "...",
+        rating: body.rating,
+        category_id: body.category_id || null, // Ensure frontend sends ID or handle logic
+        user_id: user.id,
+        published: true,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Insert Error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ review }, { status: 201 });
+  } catch (error) {
+    console.error("API POST Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }
