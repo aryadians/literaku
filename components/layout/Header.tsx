@@ -5,7 +5,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { IoMenu, IoClose, IoBook, IoLanguageSharp } from "react-icons/io5";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
+import { IoMenu, IoClose, IoBook } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +38,11 @@ export function Header() {
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link
+            href="/"
+            prefetch={true}
+            className="flex items-center gap-2 group"
+          >
             <motion.div
               className="relative"
               whileHover={{ rotate: [0, -10, 10, -10, 0] }}
@@ -55,6 +61,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={true}
                 className={cn(
                   "text-sm font-medium transition-colors relative",
                   isActive(link.href)
@@ -76,18 +83,19 @@ export function Header() {
           {/* Right Section */}
           <div className="flex items-center gap-4">
             {/* Language Switcher */}
-            <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors hidden md:block">
-              <IoLanguageSharp className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </button>
+            <LanguageSwitcher />
+
+            {/* Dark Mode Toggle */}
+            <DarkModeToggle />
 
             {/* Auth Buttons - Desktop */}
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/auth/login">
+              <Link href="/auth/login" prefetch={true}>
                 <Button variant="ghost" size="sm">
                   {t("nav.login")}
                 </Button>
               </Link>
-              <Link href="/auth/register">
+              <Link href="/auth/register" prefetch={true}>
                 <Button variant="primary" size="sm">
                   {t("nav.register")}
                 </Button>
