@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const featured = searchParams.get("featured") === "true";
     const category = searchParams.get("category");
+    const search = searchParams.get("search");
 
     // Pagination
     const from = (page - 1) * limit;
@@ -51,6 +52,14 @@ export async function GET(request: NextRequest) {
 
     if (featured) {
       query = query.eq("featured", true);
+    }
+
+    if (search) {
+      // Search by title, book_title, or author
+      // Using .or() filter
+      query = query.or(
+        `title.ilike.%${search}%,book_title.ilike.%${search}%,book_author.ilike.%${search}%`,
+      );
     }
 
     if (category) {

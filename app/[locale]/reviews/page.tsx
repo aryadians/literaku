@@ -27,23 +27,33 @@ interface Review {
     name: string;
     slug: string;
   } | null;
-  review_likes: any[];
+  review_likes: number; // API returns count now
 }
+
+import { useSearchParams } from "next/navigation";
 
 export default function ReviewsPage() {
   const t = useTranslations();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetchReviews();
-  }, []);
+  }, [search]); // Re-fetch when search changes
 
   const fetchReviews = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/reviews?limit=12");
+      let url = "/api/reviews?limit=12";
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error("Failed to fetch reviews");
@@ -179,7 +189,7 @@ export default function ReviewsPage() {
                           </span>
                           <span className="flex items-center gap-1">
                             <IoHeart className="w-4 h-4" />
-                            {review.review_likes?.length || 0}
+                            {review.review_likes || 0}
                           </span>
                         </div>
                       </div>

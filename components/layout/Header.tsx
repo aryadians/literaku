@@ -15,8 +15,9 @@ import {
   IoGrid,
   IoCreate,
   IoChevronDown,
+  IoSearch,
 } from "react-icons/io5";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -26,10 +27,12 @@ export function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const t = useTranslations();
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
+    { href: "/library", label: "Perpustakaan" }, // Using hardcoded label since translations might be missing
     { href: "/reviews", label: t("nav.reviews") },
     { href: "/categories", label: t("nav.categories") },
     { href: "/about", label: t("nav.about") },
@@ -94,6 +97,26 @@ export function Header() {
                 )}
               </Link>
             ))}
+
+            {/* Search Input */}
+            <div className="relative group">
+              <input
+                type="text"
+                placeholder="Cari buku..."
+                className="w-32 focus:w-64 transition-all duration-300 pl-9 pr-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-950 border focus:border-brand-500 rounded-full outline-none placeholder:text-gray-400 dark:text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value.trim()) {
+                      router.push(
+                        `/reviews?search=${encodeURIComponent(target.value)}`,
+                      );
+                    }
+                  }
+                }}
+              />
+              <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            </div>
           </div>
 
           {/* Right Section */}
