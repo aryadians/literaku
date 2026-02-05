@@ -44,11 +44,15 @@ export function Header() {
             className="flex items-center gap-2 group"
           >
             <motion.div
-              className="relative"
+              className="relative w-10 h-10"
               whileHover={{ rotate: [0, -10, 10, -10, 0] }}
               transition={{ duration: 0.5 }}
             >
-              <IoBook className="w-8 h-8 text-brand-500 group-hover:text-brand-600 transition-colors" />
+              <img
+                src="/icon.svg"
+                alt="Literaku"
+                className="w-full h-full object-contain"
+              />
             </motion.div>
             <span className="text-xl font-bold gradient-text hidden sm:inline">
               {t("common.appName")}

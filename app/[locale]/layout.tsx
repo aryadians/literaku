@@ -37,7 +37,6 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${inter.variable} ${merriweather.variable} scroll-smooth`}
-      suppressHydrationWarning
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

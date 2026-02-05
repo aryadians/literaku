@@ -138,7 +138,7 @@ export default function HomePage() {
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="bg-white/10 hover:bg-white/25 backdrop-blur-md border-2 border-white/30 hover:border-white/50 font-bold shadow-xl transition-all"
+                    className="bg-white/10 hover:bg-white/25 backdrop-blur-md border-2 border-white/30 hover:border-white/50 font-bold shadow-xl transition-all text-white hover:text-white"
                   >
                     Mulai Menulis
                   </Button>
@@ -203,10 +203,10 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-5xl md:text-6xl font-black mb-6 text-gray-900 bg-gradient-to-r from-brand-700 to-brand-600 bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-6xl font-black mb-6 text-gray-900 dark:text-white bg-gradient-to-r from-brand-700 to-brand-600 bg-clip-text text-transparent dark:from-brand-300 dark:to-brand-200">
               Review Terbaru
             </h2>
-            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 font-light max-w-3xl mx-auto">
               Temukan review buku terbaru dari komunitas kami yang passionate
               tentang literasi
             </p>
@@ -223,7 +223,7 @@ export default function HomePage() {
               >
                 <Card
                   hover
-                  className="h-full flex flex-col group overflow-hidden border-2 border-transparent hover:border-brand-200 transition-all duration-300"
+                  className="h-full flex flex-col group overflow-hidden border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-700 transition-all duration-300 bg-white dark:bg-gray-800"
                 >
                   <div className="relative overflow-hidden">
                     {/* Book Cover Placeholder with Gradient */}
@@ -231,7 +231,7 @@ export default function HomePage() {
                       <div className="absolute inset-0 bg-black/10"></div>
                       <IoBookOutline className="w-20 h-20 text-white opacity-40 relative z-10 group-hover:opacity-60 transition-opacity" />
                     </div>
-                    <span className="absolute top-4 right-4 px-4 py-2 text-xs font-bold bg-white/95 backdrop-blur-sm rounded-full shadow-lg">
+                    <span className="absolute top-4 right-4 px-4 py-2 text-xs font-bold bg-white/95 backdrop-blur-sm rounded-full shadow-lg text-gray-900">
                       {review.category}
                     </span>
                   </div>
@@ -244,21 +244,21 @@ export default function HomePage() {
                           className={`w-5 h-5 ${
                             i < review.rating
                               ? "text-yellow-400 drop-shadow-sm"
-                              : "text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
                           }`}
                         />
                       ))}
                     </div>
-                    <h3 className="text-2xl font-black mb-3 text-gray-900 group-hover:text-brand-600 transition-colors">
+                    <h3 className="text-2xl font-black mb-3 text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {review.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4 font-semibold">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 font-semibold">
                       oleh {review.author}
                     </p>
-                    <p className="text-gray-700 mb-6 line-clamp-3 flex-1 leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-300 mb-6 line-clamp-3 flex-1 leading-relaxed">
                       {review.excerpt}
                     </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t-2 border-gray-100">
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t-2 border-gray-100 dark:border-gray-700">
                       <div className="flex items-center gap-2 font-medium">
                         <IoEyeOutline className="w-5 h-5" />
                         <span>{review.views}</span>
