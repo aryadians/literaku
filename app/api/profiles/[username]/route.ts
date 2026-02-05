@@ -1,99 +1,58 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { username: string } },
 ) {
-  try {
-    const supabase = await createClient();
-    const { username } = params;
+  const username = params.username;
 
-    // 1. Fetch Profile
-    // Note: We assume 'username' matches 'name' in metadata for now if 'username' column is empty
-    // But ideally schema has username. Let's try fetching by username col first.
-    // Since names in next-auth are often full names, we might need fuzzy search or exact match on username col.
+  // Mock Data Delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Check if we have username column populated. If not, fallback to name?
-    // Let's assume username column is used.
+  // Mock Profile Data
+  const profile = {
+    id: "user-123",
+    name: "Mock User",
+    username: username,
+    avatar_url: null, // or a placeholder URL
+    bio: "Book lover. Coffee addict. Writing reviews in my free time.",
+    website: "https://example.com",
+    created_at: new Date().toISOString(),
+  };
 
-    // First, find the user ID from the username
-    // Since username is in profiles table:
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .ilike("username", username) // Case insensitive match
-      .single();
+  // Mock Reviews Data associated with this user
+  const reviews = [
+    {
+      id: "review-1",
+      title: "The Great Gatsby: A Classic?",
+      slug: "the-great-gatsby-review",
+      book_title: "The Great Gatsby",
+      book_author: "F. Scott Fitzgerald",
+      book_cover_url:
+        "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1490528560i/4671.jpg",
+      rating: 5,
+      excerpt:
+        "A hauntingly beautiful story of wealth, love, and the American Dream...",
+      created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+      categories: { name: "Fiction" },
+    },
+    {
+      id: "review-2",
+      title: "Atomic Habits: Life Changing",
+      slug: "atomic-habits-review",
+      book_title: "Atomic Habits",
+      book_author: "James Clear",
+      book_cover_url:
+        "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1655988385i/40121378.jpg",
+      rating: 4,
+      excerpt: "Practical strategies to form good habits and break bad ones.",
+      created_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+      categories: { name: "Self-Help" },
+    },
+  ];
 
-    if (profileError || !profile) {
-      // Fallback: Try searching by name if username is not found (for legacy/google auth users who might not have set username)
-      const { data: profileByName, error: nameError } = await supabase
-        .from("profiles")
-        .select("*")
-        .ilike("name", `%${username}%`) // Very loose search, strictly for demo purposes
-        .limit(1)
-        .single();
-
-      if (nameError || !profileByName) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      // Found by name
-      // Fetch their reviews
-      const { data: reviews, error: reviewsError } = await supabase
-        .from("book_reviews")
-        .select(
-          `
-            id,
-            title,
-            slug,
-            book_title,
-            book_cover_url,
-            rating,
-            excerpt,
-            created_at,
-            categories (name)
-        `,
-        )
-        .eq("user_id", profileByName.id)
-        .eq("published", true)
-        .order("created_at", { ascending: false });
-
-      return NextResponse.json({
-        profile: profileByName,
-        reviews: reviews || [],
-      });
-    }
-
-    // 2. Fetch Reviews by User ID
-    const { data: reviews, error: reviewsError } = await supabase
-      .from("book_reviews")
-      .select(
-        `
-        id,
-        title,
-        slug,
-        book_title,
-        book_cover_url,
-        rating,
-        excerpt,
-        created_at,
-        categories (name)
-      `,
-      )
-      .eq("user_id", profile.id)
-      .eq("published", true)
-      .order("created_at", { ascending: false });
-
-    return NextResponse.json({
-      profile,
-      reviews: reviews || [],
-    });
-  } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json({
+    profile,
+    reviews,
+  });
 }

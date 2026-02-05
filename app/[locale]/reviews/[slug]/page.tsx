@@ -55,10 +55,6 @@ interface ReviewDetail {
       name: string;
       avatar_url: string | null;
     };
-    profiles: {
-      name: string;
-      avatar_url: string | null;
-    };
   }[];
   local_comments?: any[]; // For instant UI update
 }
@@ -119,38 +115,92 @@ export default function ReviewDetailPage() {
     });
   };
 
-  const handleCommentSubmit = () => {
+  const handleLike = async () => {
+    if (!session) {
+      Swal.fire({
+        icon: "info",
+        title: "Login Diperlukan",
+        text: "Silakan login terlebih dahulu untuk menyukai review ini.",
+        showCancelButton: true,
+        confirmButtonText: "Login",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/auth/login");
+        }
+      });
+      return;
+    }
+
+    // Optimistic Update can be tricky without knowing current state (liked or not)
+    // For now, we'll just call the API and refresh
+    try {
+      const response = await fetch(`/api/reviews/${params.slug}/like`, {
+        method: "POST",
+      });
+
+      if (!response.ok) throw new Error("Failed to like");
+
+      const data = await response.json();
+
+      // Manually update state or refetch
+      // Simpler to refetch for accuracy
+      fetchReview(params.slug as string);
+    } catch (error) {
+      console.error("Error liking review:", error);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
     if (!commentText.trim()) return;
 
-    // Simulate adding comment
-    const newComment = {
-      id: `local-${Date.now()}`,
-      content: commentText,
-      created_at: new Date().toISOString(),
-      profiles: {
-        name: session?.user?.name || "Pengguna Baru", // Fallback name
-        avatar_url: session?.user?.image || null,
-      },
-    };
+    if (!session) {
+      router.push("/auth/login");
+      return;
+    }
 
-    setReview((prev) =>
-      prev
-        ? {
-            ...prev,
-            local_comments: [...(prev.local_comments || []), newComment],
-          }
-        : null,
-    );
+    try {
+      const response = await fetch(`/api/reviews/${params.slug}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: commentText }),
+      });
 
-    setCommentText("");
+      if (!response.ok) {
+        throw new Error("Gagal mengirim komentar");
+      }
 
-    Swal.fire({
-      icon: "success",
-      title: "Komentar Terkirim!",
-      text: "Terima kasih atas tanggapan Anda.",
-      timer: 2000,
-      showConfirmButton: false,
-    });
+      const newComment = await response.json();
+
+      setReview((prev) =>
+        prev
+          ? {
+              ...prev,
+              // Add to local_comments or review_comments depending on how you structure
+              // Here we add to review_comments directly since it comes from DB
+              review_comments: [newComment, ...(prev.review_comments || [])],
+            }
+          : null,
+      );
+
+      setCommentText("");
+
+      Swal.fire({
+        icon: "success",
+        title: "Komentar Terkirim!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Terjadi kesalahan saat mengirim komentar.",
+      });
+    }
   };
 
   const fetchReview = async (slug: string) => {
@@ -318,9 +368,18 @@ export default function ReviewDetailPage() {
             {/* Engagement Actions */}
             <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-6">
-                <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors group">
+                <button
+                  onClick={handleLike}
+                  className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors group"
+                >
                   <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
-                    <IoHeart className="w-6 h-6" />
+                    <IoHeart
+                      className={`w-6 h-6 ${
+                        // Check if current user liked logic would go here if we had that data easy access
+                        // For now just generic heart
+                        ""
+                      }`}
+                    />
                   </div>
                   <span className="font-semibold">
                     {review.review_likes?.length || 0} Suka

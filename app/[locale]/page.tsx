@@ -65,7 +65,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-24 md:py-40">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-16 md:py-40">
         {/* Simple Gradient Overlay - No distracting pattern */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent"></div>

@@ -117,8 +117,8 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
               Statistik Anda
             </h2>
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">
                   0
                 </div>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                   Total Review
                 </div>
               </div>
-              <div className="text-center">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-accent-600 dark:text-accent-400 mb-2">
                   0
                 </div>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
                   Total Views
                 </div>
               </div>
-              <div className="text-center">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                   0
                 </div>
