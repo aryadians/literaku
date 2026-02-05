@@ -1,18 +1,11 @@
 import createMiddleware from "next-intl/middleware";
-import { NextRequest } from "next/server";
+import { locales, defaultLocale } from "./i18n";
 
-const locales = ["id", "en"];
-const defaultLocale = "id";
-
-const intlMiddleware = createMiddleware({
+export default createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: "as-needed",
+  localePrefix: "always",
 });
-
-export default function middleware(request: NextRequest) {
-  return intlMiddleware(request);
-}
 
 export const config = {
   // Match all pathnames except for:

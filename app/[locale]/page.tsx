@@ -1,161 +1,167 @@
-"use client";
-
-import { motion } from "framer-motion";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { IoStar, IoEye, IoHeart, IoArrowForward } from "react-icons/io5";
-import Image from "next/image";
+import {
+  IoBookOutline,
+  IoStarSharp,
+  IoEyeOutline,
+  IoHeartOutline,
+} from "react-icons/io5";
+
+// This will be fetched from API later
+const featuredReview = {
+  title: "The Midnight Library",
+  author: "Matt Haig",
+  rating: 5,
+  excerpt:
+    "Sebuah karya yang menawan tentang penyesalan, pilihan hidup, dan kemungkinan yang tak terbatas...",
+  category: "Fiction",
+};
+
+const recentReviews = [
+  {
+    id: 1,
+    title: "Sapiens",
+    author: "Yuval Noah Harari",
+    rating: 5,
+    excerpt:
+      "Perjalanan menarik menelusuri sejarah umat manusia dari zaman batu hingga era digital.",
+    category: "Non-Fiction",
+    views: 234,
+    likes: 45,
+  },
+  {
+    id: 2,
+    title: "Atomic Habits",
+    author: "James Clear",
+    rating: 5,
+    excerpt:
+      "Panduan praktis membangun kebiasaan baik dan menghilangkan yang buruk.",
+    category: "Self-Help",
+    views: 189,
+    likes: 38,
+  },
+  {
+    id: 3,
+    title: "1984",
+    author: "George Orwell",
+    rating: 5,
+    excerpt: "Distopia klasik yang masih sangat relevan dengan dunia modern.",
+    category: "Fiction",
+    views: 312,
+    likes: 67,
+  },
+];
 
 export default function HomePage() {
-  const t = useTranslations();
-
-  // Mock data - will be replaced with real data from Supabase
-  const featuredReview = {
-    id: "1",
-    title: "Perjalanan Mencari Makna Hidup",
-    bookTitle: "Man's Search for Meaning",
-    bookAuthor: "Viktor E. Frankl",
-    excerpt:
-      "Sebuah buku yang mengubah perspektif saya tentang makna hidup dan penderitaan...",
-    rating: 5,
-    views: 1234,
-    likes: 89,
-    coverUrl: null,
-  };
-
-  const recentReviews = [
-    {
-      id: "2",
-      title: "Filosofi Kehidupan dalam Cerita Pendek",
-      bookTitle: "Kafka di Tepi Pantai",
-      bookAuthor: "Haruki Murakami",
-      excerpt: "Perpaduan realitas dan fantasi yang memukau...",
-      rating: 4.5,
-      views: 856,
-      likes: 67,
-      category: "Fiction",
-      coverUrl: null,
-    },
-    {
-      id: "3",
-      title: "Memahami Psikologi Keputusan",
-      bookTitle: "Thinking, Fast and Slow",
-      bookAuthor: "Daniel Kahneman",
-      excerpt: "Wawasan mendalam tentang cara kerja pikiran manusia...",
-      rating: 5,
-      views: 1092,
-      likes: 94,
-      category: "Psychology",
-      coverUrl: null,
-    },
-    {
-      id: "4",
-      title: "Sejarah Singkat Umat Manusia",
-      bookTitle: "Sapiens",
-      bookAuthor: "Yuval Noah Harari",
-      excerpt: "Narasi sejarah yang memikat dari perspektif yang unik...",
-      rating: 4.5,
-      views: 1456,
-      likes: 123,
-      category: "History",
-      coverUrl: null,
-    },
-  ];
+  // Note: In Next.js App Router, we can't use hooks directly in server components
+  // This page should be a client component if we want to use useTranslations
+  // For now, let's keep the content in Indonesian as default
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 text-white py-20 md:py-32">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          ></div>
+        </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Text */}
+        <div className="container-custom relative z-10">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left Content - Text */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
               <motion.h1
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+                className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                {t("home.hero.title")}{" "}
-                <span className="gradient-text">{t("home.hero.subtitle")}</span>
+                Jejak Literasi,{" "}
+                <span className="gradient-text bg-gradient-to-r from-yellow-200 to-orange-200">
+                  Catatan Bacaan
+                </span>
               </motion.h1>
-
               <motion.p
-                className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl"
+                className="text-xl text-brand-50 mb-8 leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                {t("home.hero.description")}
+                Platform berbagi review dan catatan bacaan untuk para pecinta
+                buku. Temukan rekomendasi, bagikan pengalaman, dan jelajahi
+                dunia literasi bersama.
               </motion.p>
-
               <motion.div
+                className="flex flex-wrap gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="flex flex-wrap gap-4"
               >
-                <Button variant="primary" size="lg">
-                  {t("home.hero.cta")}
-                  <IoArrowForward />
-                </Button>
-                <Button variant="outline" size="lg">
-                  {t("nav.about")}
-                </Button>
+                <Link href="/reviews">
+                  <Button variant="secondary" size="lg">
+                    <IoBookOutline className="w-5 h-5" />
+                    Jelajahi Review
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                  >
+                    Mulai Menulis
+                  </Button>
+                </Link>
               </motion.div>
             </motion.div>
 
-            {/* Right Column - Featured Review Preview */}
+            {/* Right Content - Featured Review Card */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="hidden lg:block"
             >
-              <Card className="overflow-hidden">
-                <div className="relative h-64 bg-gradient-brand">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <h3 className="text-2xl font-bold mb-2">
-                        {featuredReview.bookTitle}
-                      </h3>
-                      <p className="text-white/80">
-                        {featuredReview.bookAuthor}
-                      </p>
+              <Card className="hover:scale-105 transition-transform duration-300">
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <span className="px-3 py-1 text-sm font-medium bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300 rounded-full">
+                      {featuredReview.category}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <IoStarSharp
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < featuredReview.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
+                          }`}
+                        />
+                      ))}
                     </div>
                   </div>
-                </div>
-                <Card.Content>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <IoStar
-                        key={i}
-                        className="w-5 h-5 text-yellow-400 fill-current"
-                      />
-                    ))}
-                  </div>
-                  <h4 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
                     {featuredReview.title}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    oleh {featuredReview.author}
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     {featuredReview.excerpt}
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <IoEye /> {featuredReview.views}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <IoHeart /> {featuredReview.likes}
-                    </span>
-                  </div>
-                </Card.Content>
+                </div>
               </Card>
             </motion.div>
           </div>
@@ -163,109 +169,118 @@ export default function HomePage() {
       </section>
 
       {/* Recent Reviews Section */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t("home.recent")}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Temukan review buku terbaru dari komunitas kami
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recentReviews.map((review, index) => (
-            <motion.div
-              key={review.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="h-full">
-                <div className="relative h-48 bg-gradient-to-br from-brand-400 to-brand-600">
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
-                    <div className="text-center text-white">
-                      <h4 className="font-bold text-xl mb-1">
-                        {review.bookTitle}
-                      </h4>
-                      <p className="text-white/80 text-sm">
-                        {review.bookAuthor}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-xs">
-                    {review.category}
-                  </div>
-                </div>
-                <Card.Content>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(Math.floor(review.rating))].map((_, i) => (
-                      <IoStar
-                        key={i}
-                        className="w-4 h-4 text-yellow-400 fill-current"
-                      />
-                    ))}
-                    {review.rating % 1 !== 0 && (
-                      <IoStar className="w-4 h-4 text-yellow-400 fill-current opacity-50" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white line-clamp-2">
-                    {review.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
-                    {review.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <IoEye className="w-4 h-4" /> {review.views}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <IoHeart className="w-4 h-4" /> {review.likes}
-                    </span>
-                  </div>
-                </Card.Content>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <Button variant="outline" size="lg">
-            {t("nav.reviews")}
-            <IoArrowForward />
-          </Button>
-        </motion.div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-brand text-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-20 px-4">
+        <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              Review Terbaru
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Temukan review buku terbaru dari komunitas kami
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {recentReviews.map((review, index) => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card hover className="h-full flex flex-col">
+                  <div className="relative">
+                    {/* Book Cover Placeholder */}
+                    <div className="h-48 bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                      <IoBookOutline className="w-16 h-16 text-white opacity-50" />
+                    </div>
+                    <span className="absolute top-3 right-3 px-3 py-1 text-xs font-medium bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full">
+                      {review.category}
+                    </span>
+                  </div>
+
+                  <Card.Content className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-1 mb-3">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <IoStarSharp
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < review.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                      {review.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      oleh {review.author}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-1">
+                      {review.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-1">
+                        <IoEyeOutline className="w-4 h-4" />
+                        <span>{review.views}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <IoHeartOutline className="w-4 h-4" />
+                        <span>{review.likes}</span>
+                      </div>
+                    </div>
+                  </Card.Content>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Link href="/reviews">
+              <Button variant="outline" size="lg">
+                Lihat Semua Review
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-brand-500 to-brand-600">
+        <div className="container-custom text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold mb-4">
-              Mulai Bagikan Catatan Bacaan Anda
+            <h2 className="text-4xl font-bold mb-6 text-white">
+              Siap Berbagi Pengalaman Membacamu?
             </h2>
-            <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-              Bergabunglah dengan komunitas pecinta buku dan berbagi pengalaman
-              membaca Anda
+            <p className="text-xl text-brand-50 mb-8 max-w-2xl mx-auto">
+              Bergabunglah dengan komunitas pembaca dan penulis review buku.
+              Mulai bagikan ceritamu hari ini!
             </p>
-            <Button variant="secondary" size="lg">
-              {t("nav.register")}
-            </Button>
+            <Link href="/auth/register">
+              <Button variant="secondary" size="lg">
+                Daftar Sekarang
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>

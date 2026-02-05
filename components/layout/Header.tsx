@@ -82,12 +82,16 @@ export function Header() {
 
             {/* Auth Buttons - Desktop */}
             <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => {}}>
-                {t("nav.login")}
-              </Button>
-              <Button variant="primary" size="sm" onClick={() => {}}>
-                {t("nav.register")}
-              </Button>
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm">
+                  {t("nav.login")}
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button variant="primary" size="sm">
+                  {t("nav.register")}
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -130,12 +134,19 @@ export function Header() {
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 px-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Button variant="ghost" size="sm" onClick={() => {}}>
-                    {t("nav.login")}
-                  </Button>
-                  <Button variant="primary" size="sm" onClick={() => {}}>
-                    {t("nav.register")}
-                  </Button>
+                  <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="ghost" size="sm" className="w-full">
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Button variant="primary" size="sm" className="w-full">
+                      {t("nav.register")}
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </motion.div>
