@@ -74,6 +74,67 @@ export default function ReviewDetailPage() {
     }
   }, [params.slug]);
 
+  // Subscribe to Realtime Comments
+  useEffect(() => {
+    if (!review?.id) return;
+
+    // Use the client-side Supabase client
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`comments-${review.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "comments",
+            filter: `review_id=eq.${review.id}`,
+          },
+          async (payload) => {
+            // Fetch the full comment with profile data
+            const { data: newComment, error } = await supabase
+              .from("comments")
+              .select(
+                `
+                  id,
+                  content,
+                  created_at,
+                  profiles (
+                    name,
+                    avatar_url
+                  )
+                `,
+              )
+              .eq("id", payload.new.id)
+              .single();
+
+            if (!error && newComment) {
+              setReview((prev) => {
+                if (!prev) return null;
+                // Prevent duplicate if we just added it manually via form
+                if (prev.review_comments?.some((c) => c.id === newComment.id)) {
+                  return prev;
+                }
+                return {
+                  ...prev,
+                  review_comments: [
+                    newComment,
+                    ...(prev.review_comments || []),
+                  ],
+                };
+              });
+            }
+          },
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    });
+  }, [review?.id]);
+
   const handleShare = async () => {
     const url = window.location.href;
     const title = review?.title || "Literaku Review";
