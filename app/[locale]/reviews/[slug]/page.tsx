@@ -17,8 +17,15 @@ import {
   IoArrowBack,
   IoEye,
   IoBook,
+  IoChatbubble,
+  IoSend,
+  IoLockClosed,
 } from "react-icons/io5";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 interface ReviewDetail {
   id: string;
@@ -40,19 +47,111 @@ interface ReviewDetail {
     slug: string;
   } | null;
   review_likes: any[];
+  review_comments?: {
+    id: string;
+    content: string;
+    created_at: string;
+    profiles: {
+      name: string;
+      avatar_url: string | null;
+    };
+    profiles: {
+      name: string;
+      avatar_url: string | null;
+    };
+  }[];
+  local_comments?: any[]; // For instant UI update
 }
 
 export default function ReviewDetailPage() {
   const params = useParams();
+  const { data: session } = useSession(); // Auth check
+  const router = useRouter(); // For redirecting to login
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [commentText, setCommentText] = useState(""); // Form state
 
   useEffect(() => {
     if (params.slug) {
       fetchReview(params.slug as string);
     }
   }, [params.slug]);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = review?.title || "Literaku Review";
+
+    const { value: result } = await Swal.fire({
+      title: "Bagikan Review Ini",
+      html: `
+        <div class="flex flex-col gap-3">
+          <a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-[#25D366]/10 text-[#25D366] font-bold hover:bg-[#25D366]/20 transition">
+            <i class="fab fa-whatsapp text-xl"></i> WhatsApp
+          </a>
+          <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-[#1877F2]/10 text-[#1877F2] font-bold hover:bg-[#1877F2]/20 transition">
+            <i class="fab fa-facebook text-xl"></i> Facebook
+          </a>
+          <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-black/5 text-black dark:text-white dark:bg-white/10 font-bold hover:bg-black/10 transition">
+             X (Twitter)
+          </a>
+          <button id="copyLinkBtn" class="flex items-center gap-3 p-3 rounded-lg bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition text-left">
+             Salin Link
+          </button>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true,
+      didOpen: () => {
+        const btn = document.getElementById("copyLinkBtn");
+        if (btn) {
+          btn.addEventListener("click", () => {
+            navigator.clipboard.writeText(url);
+            Swal.fire({
+              icon: "success",
+              title: "Link Disalin!",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          });
+        }
+      },
+    });
+  };
+
+  const handleCommentSubmit = () => {
+    if (!commentText.trim()) return;
+
+    // Simulate adding comment
+    const newComment = {
+      id: `local-${Date.now()}`,
+      content: commentText,
+      created_at: new Date().toISOString(),
+      profiles: {
+        name: session?.user?.name || "Pengguna Baru", // Fallback name
+        avatar_url: session?.user?.image || null,
+      },
+    };
+
+    setReview((prev) =>
+      prev
+        ? {
+            ...prev,
+            local_comments: [...(prev.local_comments || []), newComment],
+          }
+        : null,
+    );
+
+    setCommentText("");
+
+    Swal.fire({
+      icon: "success",
+      title: "Komentar Terkirim!",
+      text: "Terima kasih atas tanggapan Anda.",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  };
 
   const fetchReview = async (slug: string) => {
     try {
@@ -96,9 +195,9 @@ export default function ReviewDetailPage() {
   return (
     <article className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* Hero Header with Blur Background */}
-      <div className="relative w-full h-[50vh] min-h-[400px] overflow-hidden">
+      <div className="relative w-full min-h-[50vh] h-auto overflow-hidden pb-12 md:pb-0 bg-gray-900">
         {/* Blurred Background Image */}
-        <div className="absolute inset-0 bg-gray-900">
+        <div className="absolute inset-0 z-0">
           {review.book_cover_url && (
             <Image
               src={review.book_cover_url}
@@ -110,8 +209,8 @@ export default function ReviewDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-gray-50 dark:from-gray-950 via-transparent to-black/30" />
         </div>
 
-        {/* Content Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center container-custom pt-20">
+        {/* Content Overlay - Now Relative */}
+        <div className="relative z-10 flex items-center justify-center container-custom pt-24 pb-12 min-h-[50vh]">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-8 w-full max-w-5xl">
             {/* Book Cover */}
             <motion.div
@@ -164,8 +263,8 @@ export default function ReviewDetailPage() {
 
               {/* Reviewer Info */}
               <div className="flex items-center justify-center md:justify-start gap-4">
-                <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative">
+                <div className="flex items-center gap-3 bg-white/90 dark:bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-gray-200 dark:border-white/20 shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative border border-gray-100 dark:border-transparent">
                     {review.profiles.avatar_url ? (
                       <Image
                         src={review.profiles.avatar_url}
@@ -177,19 +276,19 @@ export default function ReviewDetailPage() {
                       <IoPerson className="w-full h-full p-1 text-gray-400" />
                     )}
                   </div>
-                  <div className="text-left">
-                    <p className="text-xs text-gray-300 uppercase tracking-wider font-semibold">
+                  <div className="flex flex-col items-start justify-center">
+                    <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider font-semibold">
                       Direview oleh
                     </p>
-                    <p className="text-sm font-bold text-white">
-                      {review.profiles.name}
+                    <p className="text-sm md:text-base font-bold text-gray-900 dark:text-white drop-shadow-none dark:drop-shadow-md">
+                      {review.profiles?.name || "Anonymous"}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-300 flex items-center gap-4">
-                  <span className="flex items-center gap-1">
-                    <IoCalendar className="w-4 h-4" />
+                <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-4 bg-white/60 dark:bg-transparent px-3 py-1 rounded-full md:bg-transparent md:px-0">
+                  <span className="flex items-center gap-1 font-medium">
+                    <IoCalendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     {format(new Date(review.created_at), "d MMM yyyy", {
                       locale: idLocale,
                     })}
@@ -233,7 +332,10 @@ export default function ReviewDetailPage() {
                 </div>
               </div>
 
-              <button className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold hover:underline">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold hover:underline"
+              >
                 <IoShareSocial className="w-5 h-5" />
                 Bagikan
               </button>
@@ -288,6 +390,131 @@ export default function ReviewDetailPage() {
             </div>
           </motion.aside>
         </div>
+
+        {/* Full Width Comments Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-16 max-w-4xl mx-auto"
+        >
+          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-8 md:p-12 border border-gray-100 dark:border-gray-800">
+            <h3 className="text-3xl font-bold mb-10 flex items-center gap-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-6">
+              <IoChatbubble className="text-brand-500" />
+              Diskusi & Komentar{" "}
+              <span className="text-lg font-normal text-gray-500">
+                (
+                {(review?.review_comments?.length || 0) +
+                  (review?.local_comments?.length || 0)}
+                )
+              </span>
+            </h3>
+
+            <div className="space-y-8 mb-12">
+              {/* Combine Mock comments + Local Comments */}
+              {[
+                ...(review?.review_comments || []),
+                ...(review?.local_comments || []),
+              ].length > 0 ? (
+                [
+                  ...(review?.review_comments || []),
+                  ...(review?.local_comments || []),
+                ].map((comment: any) => (
+                  <div
+                    key={comment.id}
+                    className="flex gap-6 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+                  >
+                    <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gray-200 overflow-hidden relative border-2 border-white dark:border-gray-700 shadow-sm">
+                      {comment.profiles.avatar_url ? (
+                        <Image
+                          src={comment.profiles.avatar_url}
+                          alt={comment.profiles.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <IoPerson className="w-full h-full p-3 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
+                        <span className="font-bold text-gray-900 dark:text-white text-lg">
+                          {comment.profiles.name}
+                        </span>
+                        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full font-medium">
+                          {format(new Date(comment.created_at), "d MMMM yyyy", {
+                            locale: idLocale,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                  <p className="text-gray-500 italic text-lg">
+                    Belum ada komentar. Jadilah yang pertama!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Comment Form */}
+            <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
+              {session ? (
+                <div className="flex gap-6 items-start">
+                  <div className="hidden md:block w-14 h-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex-shrink-0 shadow-lg" />
+                  <div className="flex-1 space-y-4">
+                    <label className="font-bold text-xl text-gray-800 dark:text-white block">
+                      Tulis Tanggapan Anda
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Bagikan pendapat cerdas Anda tentang buku ini..."
+                        className="w-full p-5 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-950 focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all resize-none min-h-[150px] shadow-inner text-gray-900 dark:text-white text-lg placeholder:text-gray-400"
+                      />
+                      <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
+                        Markdown Supported
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleCommentSubmit}
+                        disabled={!commentText.trim()}
+                        className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-brand-500/30 disabled:opacity-70 disabled:hover:scale-100"
+                      >
+                        <IoSend className="w-5 h-5" /> Kirim Komentar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl p-10 text-center shadow-xl relative overflow-hidden group hover:shadow-2xl transition-all">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-purple-500" />
+                  <IoLockClosed className="w-12 h-12 mx-auto mb-4 text-gray-400 group-hover:text-white transition-colors" />
+                  <h4 className="text-2xl font-bold mb-3">
+                    Ingin ikut berdiskusi?
+                  </h4>
+                  <p className="text-gray-300 mb-8 max-w-lg mx-auto text-lg">
+                    Bergabunglah dengan komunitas Literaku untuk memberikan
+                    kritik, saran, dan bertukar pikiran.
+                  </p>
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="px-8 py-3 bg-white text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
+                  >
+                    Masuk ke Akun
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </article>
   );
