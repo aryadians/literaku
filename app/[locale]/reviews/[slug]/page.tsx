@@ -359,13 +359,52 @@ export default function ReviewDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-8 md:p-10 mb-8 border border-gray-100 dark:border-gray-800">
-              <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-brand-600">
-                <ReactMarkdown>{review.content}</ReactMarkdown>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-8 md:p-10 mb-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+              <div
+                className={`prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-brand-600 ${
+                  !session ? "max-h-[500px] overflow-hidden" : ""
+                }`}
+              >
+                <ReactMarkdown>
+                  {session
+                    ? review.content
+                    : review.content.split("\n").slice(0, 10).join("\n")}
+                </ReactMarkdown>
               </div>
+
+              {/* Login Wall UI */}
+              {!session && (
+                <div className="absolute inset-x-0 bottom-0 h-[300px] bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent flex flex-col items-center justify-end pb-10 z-10">
+                  <div className="text-center p-6 max-w-md">
+                    <IoLockClosed className="w-12 h-12 text-brand-500 mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                      Baca Selengkapnya?
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      Buka akses penuh ke ulasan ini dan ribuan konten menarik
+                      lainnya dengan masuk ke akun Anda.
+                    </p>
+                    <button
+                      onClick={() => router.push("/auth/login")}
+                      className="px-8 py-3 bg-brand-600 text-white rounded-full font-bold text-lg hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 hover:-translate-y-1"
+                    >
+                      Masuk ke Akun
+                    </button>
+                    <p className="mt-4 text-sm text-gray-500">
+                      Belum punya akun?{" "}
+                      <Link
+                        href="/auth/register"
+                        className="text-brand-600 hover:underline font-medium"
+                      >
+                        Daftar Gratis
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Engagement Actions */}
+            {/* Engagement Actions (Only show/enable if logged in or show limited) */}
             <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-6">
                 <button
@@ -376,7 +415,6 @@ export default function ReviewDetailPage() {
                     <IoHeart
                       className={`w-6 h-6 ${
                         // Check if current user liked logic would go here if we had that data easy access
-                        // For now just generic heart
                         ""
                       }`}
                     />

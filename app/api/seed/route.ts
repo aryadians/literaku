@@ -3,191 +3,183 @@ import { createClient } from "@/lib/supabase/server";
 
 const dummyReviews = [
   {
+    title: "Harry Potter dan Batu Bertuah",
+    book_title: "Harry Potter and the Sorcerer's Stone",
+    book_author: "J.K. Rowling",
+    book_cover_url:
+      "https://m.media-amazon.com/images/I/71RVt35ZAbL._AC_UF1000,1000_QL80_.jpg",
+    content: `# Sihir yang Memikat Hati
+
+**Penerbit:** Bloomsbury (1997)
+**Genre:** Fantasi
+
+Buku yang memulai segalanya. J.K. Rowling berhasil menciptakan dunia sihir yang begitu detail dan hidup. Kisah Harry, anak yatim piatu yang menemukan bahwa dia adalah penyihir, adalah kisah klasik tentang kebaikan melawan kejahatan.
+
+## Karakter
+Pengembangan karakter sangat kuat. Kita tidak hanya peduli pada Harry, tapi juga Ron dan Hermione. Persahabatan mereka terasa tulus dan tumbuh secara alami.
+
+## Kesimpulan
+Wajib dibaca oleh siapa saja, tua maupun muda. Ini bukan sekadar buku anak-anak; ini adalah pintu gerbang ke imajinasi tanpa batas.`,
+    rating: 5,
+    category_slug: "fiction",
+  },
+  {
+    title: "The Alchemist: Sang Alkemis",
+    book_title: "The Alchemist",
+    book_author: "Paulo Coelho",
+    book_cover_url: "https://m.media-amazon.com/images/I/51Z0nLAfLmL.jpg",
+    content: `# Mengejar Takdir Pribadi
+
+**Penerbit:** HarperOne (1988)
+**Genre:** Fiksi / Filosofi
+
+Kisah sederhana tentang Santiago, seorang gembala Andalusia yang bermimpi menemukan harta karun di piramida Mesir. Namun, perjalanannya mengajarkan bahwa harta yang sesungguhnya adalah pelajaran yang didapat sepanjang jalan.
+
+## Kutipan Favorit
+"When you want something, all the universe conspires in helping you to achieve it."
+
+## Review
+Bokunya tipis tapi penuh makna. Sangat inspiratif bagi siapa saja yang sedang ragu mengejar mimpinya.`,
+    rating: 5,
+    category_slug: "fiction",
+  },
+  {
     title: "Atomic Habits: Perubahan Kecil yang Memberikan Hasil Luar Biasa",
     book_title: "Atomic Habits",
     book_author: "James Clear",
     book_cover_url: "https://m.media-amazon.com/images/I/81wgcld4wxL.jpg",
-    content: `# Review Atomic Habits
+    content: `# Sistem, Bukan Sekadar Tujuan
 
-Atomic Habits oleh James Clear adalah buku yang mengubah cara pandang kita tentang kesuksesan dan produktivitas. Clear berargumen bahwa perubahan besar tidak datang dari satu tindakan revolusioner, melainkan dari akumulasi perbaikan kecil sebesar 1% setiap hari.
+**Penerbit:** Avery (2018)
+**Genre:** Self-Help
 
-## Konsep Utama
-Buku ini memperkenalkan 4 Hukum Perubahan Perilaku:
-1.  **Make it Obvious (Jadikan Terlihat)**: Buat sinyal kebiasaan positif menjadi jelas di lingkungan Anda.
-2.  **Make it Attractive (Jadikan Menarik)**: Gunakan "temptation bundling" untuk membuat kebiasaan sulit menjadi lebih menyenangkan.
-3.  **Make it Easy (Jadikan Mudah)**: Kurangi hambatan untuk memulai. Aturan 2 Menit sangat efektif di sini.
-4.  **Make it Satisfying (Jadikan Memuaskan)**: Berikan hadiah segera setelah menyelesaikan kebiasaan.
+James Clear menawarkan kerangka kerja yang terbukti untuk meningkatkan kemampuan setiap hari. Buku ini bukan tentang motivasi sesaat, tapi tentang membangun sistem.
 
-## Opini Pribadi
-Saya sangat menyukai pendekatan praktis buku ini. Tidak hanya teori, Clear memberikan langkah-langkah konkret. Bagian tentang "Identity-Based Habits" sangat membuka mata saya; kita harus fokus menjadi *siapa* kita ingin menjadi, bukan hanya *apa* yang ingin kita capai.
+## 1% Lebih Baik
+Konsep utamanya adalah perbaikan 1% setiap hari. Jika Anda bisa menjadi 1% lebih baik setiap hari selama setahun, Anda akan menjadi 37 kali lebih baik pada akhir tahun.
 
-Sangat direkomendasikan untuk siapa saja yang ingin memperbaiki diri secara konsisten.`,
+## Kesimpulan
+Sangat praktis dan aplikatif.`,
     rating: 5,
     category_slug: "self-help",
+  },
+  {
+    title: "Start with Why",
+    book_title: "Start with Why",
+    book_author: "Simon Sinek",
+    book_cover_url: "https://m.media-amazon.com/images/I/71vK0WVQ4rL.jpg",
+    content: `# Mengapa Beberapa Pemimpin Menginspirasi?
+
+**Penerbit:** Portfolio (2009)
+**Genre:** Bisnis / Kepemimpinan
+
+Sinek berargumen bahwa orang tidak membeli "apa" yang Anda lakukan, tapi "mengapa" Anda melakukannya. Dia menggunakan "Golden Circle" (Why, How, What) untuk menjelaskan kesuksesan Apple, Martin Luther King Jr., dan Wright Brothers.
+
+## Review
+Buku ini mengubah cara saya memandang pemasaran dan kepemimpinan. Sangat direkomendasikan untuk entrepreneur.`,
+    rating: 4,
+    category_slug: "business",
+  },
+  {
+    title: "Steve Jobs",
+    book_title: "Steve Jobs",
+    book_author: "Walter Isaacson",
+    book_cover_url: "https://m.media-amazon.com/images/I/71sV+iIEWdL.jpg",
+    content: `# Biografi Sang Visioner
+
+**Penerbit:** Simon & Schuster (2011)
+**Genre:** Biografi
+
+Buku ini memberikan pandangan yang jujur dan brutal tentang kehidupan Steve Jobs. Isaacson tidak berusaha memoles citra Jobs; dia menampilkan sisi jeniusnya sekaligus sisi temperamentalnya.
+
+## Inovasi
+Kita diajak menyelami proses lahirnya produk-produk ikonik: Macintosh, iPod, iPhone, dan iPad. Dedikasi Jobs pada kesempurnaan desain sangat mengagumkan.`,
+    rating: 5,
+    category_slug: "biography",
+  },
+  {
+    title: "A Brief History of Time",
+    book_title: "A Brief History of Time",
+    book_author: "Stephen Hawking",
+    book_cover_url:
+      "https://m.media-amazon.com/images/I/51+GySc8ExL._SY445_SX342_.jpg",
+    content: `# Menjelajahi Alam Semesta
+
+**Penerbit:** Bantam Books (1988)
+**Genre:** Sains
+
+Stephen Hawking mencoba menjelaskan konsep-konsep kosmologi yang rumit (Big Bang, Black Holes, Light Cones) dengan bahasa yang bisa dimengerti orang awam.
+
+## Kesan
+Meskipun "populer", buku ini tetap menantang. Tapi usaha untuk memahaminya sepadan. Membaca ini membuat kita merasa kecil di hadapan alam semesta yang maha luas.`,
+    rating: 4,
+    category_slug: "science",
   },
   {
     title: "Sapiens: Riwayat Singkat Umat Manusia",
     book_title: "Sapiens",
     book_author: "Yuval Noah Harari",
     book_cover_url: "https://m.media-amazon.com/images/I/713jIoMO3UL.jpg",
-    content: `# Sapiens: Sebuah Tinjauan
+    content: `# Sejarah yang Memprovokasi
 
-Yuval Noah Harari membawa kita dalam perjalanan epik dari masa pra-sejarah hingga era modern. Buku ini bukan sekadar buku sejarah, melainkan sebuah refleksi filosofis tentang apa artinya menjadi manusia.
+**Penerbit:** Harvill Secker (2014)
+**Genre:** Sejarah / Non-Fiksi
 
-## Tiga Revolusi Besar
-Harari membagi sejarah manusia menjadi tiga revolusi utama:
-1.  **Revolusi Kognitif**: Ketika manusia mulai berpikir abstrak dan berkomunikasi denagn bahasa yang kompleks. Hal ini memungkinkan kita menciptakan fiksi bersama (seperti uang, negara, agama).
-2.  **Revolusi Pertanian**: Transisi dari pemburu-pengumpul menjadi petani. Harari secara kontroversial menyebut ini sebagai "penipuan terbesar dalam sejarah" karena membuat hidup individu lebih keras meski populasi meledak.
-3.  **Revolusi Ilmiah**: Era di mana manusia mulai mengakui ketidaktahuannya dan mencari kekuatan melalui sains dan teknologi.
+Harari membawa kita berlari melintasi sejarah spesies kita. Bahasannya tentang "Revolusi Kognitif" dan bagaimana fiksi (uang, negara, agama) menyatukan manusia sangat brilian.
 
-## Kesimpulan
-Buku ini memaksa kita mempertanyakan narasi yang selama ini kita terima begitu saja. Gaya penulisannya yang provokatif dan penuh wawasan membuat "Sapiens" layak dibaca berulang kali.`,
+## Kritik
+Beberapa bagian mungkin terlalu generalisir, tapi sebagai pengantar sejarah makro, buku ini tak tertandingi.`,
     rating: 5,
     category_slug: "history",
-  },
-  {
-    title: "The Psychology of Money",
-    book_title: "The Psychology of Money",
-    book_author: "Morgan Housel",
-    book_cover_url: "https://m.media-amazon.com/images/I/81Dky+tD+pL.jpg",
-    content: `# Uang Bukan Sekadar Angka
-
-Morgan Housel mengajarkan bahwa kesuksesan finansial tidak semata-mata bergantung pada kecerdasan atau pengetahuan teknis, melainkan pada bagaimana kita berperilaku terhadap uang.
-
-## Poin Penting
-*   **Keberuntungan vs Risiko**: Sadari bahwa keberuntungan dan risiko adalah dua sisi mata uang yang sama. Jangan terlalu sombong saat sukses, dan jangan terlalu keras pada diri sendiri saat gagal.
-*   **Compounding**: Kekuatan bunga majemuk berlaku tidak hanya pada uang, tapi juga pada hubungan dan kebiasaan.
-*   **Cukup**: Mengetahui kapan harus berhenti mengejar lebih banyak. "Rich" is current income, "Wealth" is income not spent.
-
-## Review
-Buku ini sangat relevan untuk semua kalangan. Bahasanya sederhana namun mendalam. Housel menggunakan banyak cerita pendek (anekdot) yang membuat topik keuangan yang biasanya membosankan menjadi sangat menarik.`,
-    rating: 4,
-    category_slug: "business",
-  },
-  {
-    title: "Dunia Sophie (Sophie's World)",
-    book_title: "Dunia Sophie",
-    book_author: "Jostein Gaarder",
-    book_cover_url: "https://m.media-amazon.com/images/I/81JJPDN85pL.jpg",
-    content: `# Novel Filsafat yang Memukau
-
-Siapa sangka belajar filsafat bisa seasyik membaca novel misteri? "Dunia Sophie" adalah pintu gerbang yang sempurna bagi siapa saja yang ingin mengenal sejarah pemikiran manusia tanpa merasa digurui.
-
-## Alur Cerita
-Sophie Amundsen, seorang gadis remaja, tiba-tiba menerima surat misterius berisi pertanyaan-pertanyaan filosofis seperti "Siapa kamu?" dan "Dari mana datangnya dunia?". Ini memulai kursus filsafat tertulis dari seorang misterius bernama Alberto Knox.
-
-## Mengapa Layak Baca?
-Buku ini merangkum 3000 tahun pemikiran Barat, dari Socrates hingga Sartre, dalam sebuah narasi fiksi yang penuh plot twist. Gaarder berhasil menyederhanakan konsep-konsep rumit menjadi dialog yang mudah dicerna. Ending-nya sangat *mind-blowing*!`,
-    rating: 5,
-    category_slug: "fiction",
-  },
-  {
-    title: "Filosofi Teras",
-    book_title: "Filosofi Teras",
-    book_author: "Henry Manampiring",
-    book_cover_url:
-      "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1543116515i/42866030.jpg",
-    content: `# Stoisisme untuk Mental Baja
-
-Di tengah hiruk-pikuk kehidupan modern yang penuh kecemasan, "Filosofi Teras" hadir sebagai penawar. Buku ini mengadaptasi ajaran Stoisisme kuno ke dalam konteks kehidupan sehari-hari di Indonesia.
-
-## Dikotomi Kendali
-Inti ajaran buku ini adalah membedakan hal-hal yang ada di bawah kendali kita (pikiran, tindakan, respon) dan yang tidak (opini orang lain, cuaca, masa lalu). Fokuslah hanya pada yang bisa kita kendalikan, dan belajarlah untuk tidak peduli pada sisanya.
-
-## Kesan
-Sangat membumi. Henry Manampiring menulis dengan gaya bahasa yang santai, bahkan jenaka, namun pesannya sangat dalam. Buku ini sangat membantu saya dalam mengelola stres dan ekspektasi.`,
-    rating: 4,
-    category_slug: "self-help",
-  },
-  {
-    title: "Laut Bercerita",
-    book_title: "Laut Bercerita",
-    book_author: "Leila S. Chudori",
-    book_cover_url:
-      "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1523625399i/36979268.jpg",
-    content: `# Luka Sejarah yang Tak Pernah Kering
-
-"Laut Bercerita" adalah novel yang menghantui. Mengangkat tema aktivisme mahasiswa di era Orde Baru 1998, Leila S. Chudori merajut kisah persahabatan, cinta, keluarga, dan kehilangan dengan sangat indah namun menyakitkan.
-
-## Dua Sudut Pandang
-Novel ini dibagi menjadi dua bagian:
-1.  **Biru Laut**: Menceritakan dari sudut pandang para aktivis yang diculik dan disiksa. Deskripsinya begitu hidup dan mencekam.
-2.  **Asmara Jati**: Menceritakan dari sudut pandang keluarga yang ditinggalkan, menanti tanpa kepastian. Bagian ini menggambarkan "loss" dengan sangat pedih.
-
-## Review
-Salah satu novel sejarah terbaik Indonesia. Riset yang mendalam terasa di setiap halaman. Siapkan tisu, karena buku ini akan menguras emosi Anda.`,
-    rating: 5,
-    category_slug: "fiction",
-  },
-  {
-    title: "Thinking, Fast and Slow",
-    book_title: "Thinking, Fast and Slow",
-    book_author: "Daniel Kahneman",
-    book_cover_url: "https://m.media-amazon.com/images/I/71f6Hr9VJ8L.jpg",
-    content: `# Memahami Dua Sistem Pikiran Kita
-
-Pemenang Nobel Ekonomi, Daniel Kahneman, membedah cara kerja otak manusia dalam mengambil keputusan. Buku ini adalah "kitab suci" bagi mereka yang tertarik pada psikologi perilaku.
-
-## Sistem 1 vs Sistem 2
-*   **Sistem 1**: Cepat, intuitif, emosional, otomatis, namun sering bias.
-*   **Sistem 2**: Lambat, deliberatif, logis, membutuhkan usaha mental.
-
-Kita sering berpikir kita menggunakan Sistem 2, padahal sebagian besar keputusan kita didorong oleh Sistem 1. Kahneman menjelaskan berbagai bias kognitif seperti *sunk cost fallacy*, *anchoring*, dan *loss aversion*.
-
-## Kesimpulan
-Buku yang "berat" namun sangat bermanfaat. Membacanya membuat kita lebih waspada terhadap kesalahan berpikir diri sendiri.`,
-    rating: 4,
-    category_slug: "science",
   },
   {
     title: "Rich Dad Poor Dad",
     book_title: "Rich Dad Poor Dad",
     book_author: "Robert T. Kiyosaki",
     book_cover_url: "https://m.media-amazon.com/images/I/81bsw6fnUiL.jpg",
-    content: `# Pelajaran Dasar Literasi Keuangan
+    content: `# Melek Finansial
 
-Buku klasik ini telah mengubah mindset jutaan orang tentang uang. Kiyosaki membandingkan dua sosok ayah: ayah kandungnya (Poor Dad) yang berpendidikan tinggi tapi berjuang secara finansial, dan ayah temannya (Rich Dad) yang putus sekolah tapi menjadi multimiliuner.
+**Penerbit:** Warner Books (1997)
+**Genre:** Bisnis / Keuangan
 
-## Aset vs Liabilitas
-Pelajaran terpenting: Orang kaya membeli aset (yang menghasilkan uang), orang miskin membeli liabilitas (yang menguras uang) tapi mengira itu aset. Rumah yang Anda tinggali, menurut Kiyosaki, adalah liabilitas.
+Buku yang wajib dibaca untuk memahami perbedaan aset dan liabilitas. Kiyosaki mengajarkan bahwa menabung saja tidak cukup; kita harus berinvestasi.
 
-## Kritik & Pujian
-Meskipun beberapa nasihatnya kontroversial dan dikritik pakar, konsep dasarnya tentang *cash flow* dan pentingnya melepaskan diri dari "Rat Race" sangat valid dan memotivasi.`,
-    rating: 3,
+## Pelajaran Utama
+"Don't work for money; make money work for you."`,
+    rating: 4,
     category_slug: "business",
   },
   {
-    title: "Bumi Manusia",
-    book_title: "Bumi Manusia",
-    book_author: "Pramoedya Ananta Toer",
-    book_cover_url:
-      "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1565658920i/1398034.jpg",
-    content: `# Epik Sejarah Pergerakan Nasional
+    title: "The Lord of the Rings: The Fellowship of the Ring",
+    book_title: "The Fellowship of the Ring",
+    book_author: "J.R.R. Tolkien",
+    book_cover_url: "https://m.media-amazon.com/images/I/91jBDaLnqPL.jpg",
+    content: `# Epik Fantasi Terbesar
 
-Buku pertama dari Tetralogi Buru ini adalah mahakarya sastra Indonesia. Menceritakan kisah Minke, seorang pribumi cerdas yang bersekolah di HBS Belanda, dan perjuangannya melawan ketidakadilan kolonial.
+**Penerbit:** Allen & Unwin (1954)
+**Genre:** Fantasi
 
-## Karakter Kuat
-Nyai Ontosoroh adalah karakter wanita terkuat dalam sastra Indonesia menurut saya. Ia adalah simbol perlawanan terhadap patriarki dan kolonialisme sekaligus. Hubungannya dengan Minke sangat kompleks dan menarik.
+Dunia Middle-earth yang dibangun Tolkien begitu kaya dengan sejarah, bahasa, dan geografi. Perjalanan Frodo membawa Cincin terasa sangat berat dan nyata.
 
-## Makna Mendalam
-"Adil sejak dalam pikiran." Kalimat legendaris ini merangkum semangat buku ini. Pramoedya mengajarkan kita untuk menjadi manusia merdeka yang berani melawan penindasan. Wajib baca bagi setiap orang Indonesia.`,
+## World Building
+Tidak ada penulis lain yang bisa menyaingi detail world-building Tolkien.`,
     rating: 5,
     category_slug: "fiction",
   },
   {
-    title: "Shoe Dog: A Memoir by the Creator of Nike",
-    book_title: "Shoe Dog",
-    book_author: "Phil Knight",
-    book_cover_url: "https://m.media-amazon.com/images/I/81Example.jpg", // Placeholder if real one fails, but let's try a real one
-    content: `# Kisah Jujur di Balik Logo Swoosh
+    title: "Educated",
+    book_title: "Educated",
+    book_author: "Tara Westover",
+    book_cover_url: "https://m.media-amazon.com/images/I/81WojUxbbFL.jpg",
+    content: `# Kekuatan Pendidikan
 
-Memoar Phil Knight ini adalah salah satu buku bisnis terbaik yang pernah saya baca. Bukan buku "how-to" yang kering, melainkan sebuah petualangan yang penuh ketidakpastian, kegagalan, dan keberanian.
+**Penerbit:** Random House (2018)
+**Genre:** Biografi / Memoar
 
-## Perjalanan Berliku
-Membangun Nike (awalnya Blue Ribbon Sports) sangat jauh dari mulus. Knight menceritakan dengan jujur tentang masalah arus kas yang terus-menerus, tuntutan hukum, pengkhianatan mitra, dan tragisnya kehilangan orang tercinta.
+Kisah nyata Tara Westover yang tumbuh di keluarga survivalist di pegunungan Idaho, tidak pernah sekolah hingga usia 17 tahun, namun akhirnya berhasil meraih gelar PhD dari Cambridge.
 
-## Passion
-Yang paling menonjol adalah kecintaan Knight pada lari ("Run"). Bisnis ini bukan sekadar uang baginya, tapi tentang semangat atletik. Buku ini sangat menginspirasi bagi entrepreneur mana pun yang sedang berjuang melawan segala rintangan.`,
+## Emosional
+Kisah tentang loyalitas keluarga vs keinginan untuk berkembang. Sangat menyentuh.`,
     rating: 5,
     category_slug: "biography",
   },
@@ -214,7 +206,11 @@ export async function GET(request: NextRequest) {
         user = { id: firstUser.id } as any;
       } else {
         return NextResponse.json(
-          { error: "Unauthorized and no users found to seed with." },
+          {
+            error: "Unauthorized",
+            message:
+              "TIDAK ADA USER DITEMUKAN. Silakan daftar akun (Register) terlebih dahulu di website agar data dummy bisa dikaitkan ke akun tersebut.",
+          },
           { status: 401 },
         );
       }

@@ -72,7 +72,10 @@ export default function RegisterPage() {
         password: formData.password,
         options: {
           data: {
-            name: formData.name,
+            name:
+              formData.name.toLowerCase().replace(/[^a-z0-9]/g, "") +
+              Math.floor(Math.random() * 10000).toString(), // Generate unique username for 'username' column
+            full_name: formData.name, // Pass real name for 'full_name' column
           },
         },
       });
