@@ -7,14 +7,26 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
-import { IoMenu, IoClose, IoBook } from "react-icons/io5";
+import {
+  IoMenu,
+  IoClose,
+  IoPerson,
+  IoLogOut,
+  IoGrid,
+  IoCreate,
+  IoChevronDown,
+} from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const t = useTranslations();
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
@@ -92,18 +104,91 @@ export function Header() {
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
 
-            {/* Auth Buttons - Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              <Link href="/auth/login" prefetch={true}>
-                <Button variant="ghost" size="sm">
-                  {t("nav.login")}
-                </Button>
-              </Link>
-              <Link href="/auth/register" prefetch={true}>
-                <Button variant="primary" size="sm">
-                  {t("nav.register")}
-                </Button>
-              </Link>
+            {/* Auth Buttons / User Menu - Desktop */}
+            <div className="hidden md:flex items-center gap-2 relative">
+              {session ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative">
+                      {session.user?.image ? (
+                        <Image
+                          src={session.user.image}
+                          alt={session.user.name || "User"}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <IoPerson className="w-full h-full p-1.5 text-gray-400" />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium max-w-[100px] truncate">
+                      {session.user?.name?.split(" ")[0]}
+                    </span>
+                    <IoChevronDown
+                      className={`w-4 h-4 transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
+                      >
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {session.user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {session.user?.email}
+                          </p>
+                        </div>
+                        <div className="p-2">
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <IoGrid className="w-4 h-4" /> Dashboard
+                          </Link>
+                          <Link
+                            href="/reviews/create"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <IoCreate className="w-4 h-4" /> Tulis Review
+                          </Link>
+                          <button
+                            onClick={() => signOut()}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-2"
+                          >
+                            <IoLogOut className="w-4 h-4" /> Keluar
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <>
+                  <Link href="/auth/login" prefetch={true}>
+                    <Button variant="ghost" size="sm">
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" prefetch={true}>
+                    <Button variant="primary" size="sm">
+                      {t("nav.register")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -146,19 +231,71 @@ export function Header() {
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 px-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full">
-                      {t("nav.login")}
-                    </Button>
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Button variant="primary" size="sm" className="w-full">
-                      {t("nav.register")}
-                    </Button>
-                  </Link>
+                  {session ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-2 px-2">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative">
+                          {session.user?.image ? (
+                            <Image
+                              src={session.user.image}
+                              alt={session.user.name || "User"}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <IoPerson className="w-full h-full p-2 text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">
+                            {session.user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {session.user?.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <IoGrid /> Dashboard
+                      </Link>
+                      <Link
+                        href="/reviews/create"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <IoCreate /> Tulis Review
+                      </Link>
+                      <button
+                        onClick={() => signOut()}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <IoLogOut /> Keluar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/auth/login"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Button variant="ghost" size="sm" className="w-full">
+                          {t("nav.login")}
+                        </Button>
+                      </Link>
+                      <Link
+                        href="/auth/register"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Button variant="primary" size="sm" className="w-full">
+                          {t("nav.register")}
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
