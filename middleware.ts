@@ -1,4 +1,5 @@
 import createMiddleware from "next-intl/middleware";
+// Middleware for handling i18n routing
 import { locales, defaultLocale } from "./i18n";
 
 export default createMiddleware({

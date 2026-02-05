@@ -1,16 +1,23 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ["localhost", "avatars.githubusercontent.com"],
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**.supabase.co",
+        hostname: "m.media-amazon.com", // For Mock Data
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co", // For placeholders
+      },
+      {
+        protocol: "https",
+        hostname: "**",
       },
     ],
   },

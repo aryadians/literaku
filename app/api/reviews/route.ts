@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+// import { createClient as createServerClient } from "@/lib/supabase/server";
+// import { createClient } from "@supabase/supabase-js";
 
 /**
  * GET /api/reviews
@@ -10,56 +11,80 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
-    const category = searchParams.get("category");
     const featured = searchParams.get("featured") === "true";
 
-    const supabase = await createClient();
+    // START: REAL DATABASE CONNECTION (Direct Client)
+    // DEBUGGING: Use direct client to bypass SSR/Cookie issues for public data
+    const supabaseDebug = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
 
-    let query = supabase
+    // Simplest query possible: No joins, just data
+    let query = supabaseDebug
       .from("book_reviews")
-      .select(
-        `
-        *,
-        profiles:user_id (id, name, avatar_url),
-        categories:category_id (id, name, slug),
-        review_likes (count)
-      `,
-        { count: "exact" },
-      )
+      .select("*", { count: "exact" }) // Select all fields, no joins
       .eq("published", true)
       .order("created_at", { ascending: false });
-
-    // Apply filters
-    if (category) {
-      query = query.eq("categories.slug", category);
-    }
 
     if (featured) {
       query = query.eq("featured", true);
     }
 
-    // Pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
-
     const { data: reviews, error, count } = await query;
+    // END: REAL DATABASE CONNECTION
+
+    // MOCK DATA (DISABLED)
+    /*
+    const mockReviews = [
+      {
+        id: "mock-1",
+        title: "Mock Review: Harry Potter",
+        slug: "harry-potter-mock",
+        book_title: "Harry Potter",
+        book_author: "J.K. Rowling",
+        book_cover_url: "https://m.media-amazon.com/images/I/71-++hbbERL.jpg",
+        excerpt: "This is a mock review for testing purposes.",
+        rating: 5,
+        created_at: new Date().toISOString(),
+        published: true,
+        featured: false,
+        user_id: "mock-user",
+        // category_id: "mock-cat"
+      },
+    ];
+
+    console.log("✅ Returning MOCK data");
+
+    return NextResponse.json({
+      reviews: mockReviews,
+      pagination: {
+        page,
+        limit,
+        total: 1,
+        totalPages: 1,
+      },
+    });
+    */
 
     if (error) {
-      console.error("Error fetching reviews:", error);
+      console.error("❌ SUPABASE QUERY ERROR:", error);
       return NextResponse.json(
-        { error: "Failed to fetch reviews" },
+        { error: "Failed to fetch reviews", details: error.message },
         { status: 500 },
       );
     }
+
+    const total = count || 0;
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       reviews,
       pagination: {
         page,
         limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
+        total,
+        totalPages,
       },
     });
   } catch (error) {
@@ -69,4 +94,15 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+/**
+ * POST /api/reviews
+ * Create a new review
+ */
+export async function POST(request: NextRequest) {
+  return NextResponse.json(
+    { error: "Post disabled during mock debugging" },
+    { status: 503 },
+  );
 }
