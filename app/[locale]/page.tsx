@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
@@ -63,63 +65,90 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 text-white py-20 md:py-32">
-        {/* Background Pattern */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-24 md:py-40">
+        {/* Animated Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 animate-gradient"
             style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundSize: "80px 80px",
             }}
           ></div>
         </div>
 
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
         <div className="container-custom relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             {/* Left Content - Text */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8 }}
             >
-              <motion.h1
-                className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
+                className="mb-6"
+              >
+                <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-brand-50 text-sm font-semibold mb-4 border border-white/20">
+                  ✨ Platform Review Buku #1 di Indonesia
+                </span>
+              </motion.div>
+
+              <motion.h1
+                className="text-5xl md:text-7xl font-black mb-8 leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
               >
                 Jejak Literasi,{" "}
-                <span className="gradient-text bg-gradient-to-r from-yellow-200 to-orange-200">
+                <span
+                  className="block mt-2 bg-gradient-to-r from-yellow-300 via-yellow-200 to-orange-200 bg-clip-text text-transparent animate-gradient"
+                  style={{ backgroundSize: "200% auto" }}
+                >
                   Catatan Bacaan
                 </span>
               </motion.h1>
+
               <motion.p
-                className="text-xl text-brand-50 mb-8 leading-relaxed"
+                className="text-xl md:text-2xl text-brand-50 mb-10 leading-relaxed font-light"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.5 }}
               >
                 Platform berbagi review dan catatan bacaan untuk para pecinta
-                buku. Temukan rekomendasi, bagikan pengalaman, dan jelajahi
-                dunia literasi bersama.
+                buku.
+                <span className="block mt-2 text-brand-100">
+                  Temukan rekomendasi, bagikan pengalaman, dan jelajahi dunia
+                  literasi bersama.
+                </span>
               </motion.p>
+
               <motion.div
                 className="flex flex-wrap gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.7 }}
               >
                 <Link href="/reviews">
-                  <Button variant="secondary" size="lg">
-                    <IoBookOutline className="w-5 h-5" />
-                    Jelajahi Review
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="shadow-2xl hover:shadow-accent-500/50 hover:scale-105 transition-all group"
+                  >
+                    <IoBookOutline className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                    <span className="font-bold">Jelajahi Review</span>
                   </Button>
                 </Link>
                 <Link href="/auth/register">
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                    className="bg-white/10 hover:bg-white/25 backdrop-blur-md border-2 border-white/30 hover:border-white/50 font-bold shadow-xl transition-all"
                   >
                     Mulai Menulis
                   </Button>
@@ -131,58 +160,65 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="hidden md:block"
             >
-              <Card className="hover:scale-105 transition-transform duration-300">
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <span className="px-3 py-1 text-sm font-medium bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300 rounded-full">
-                      {featuredReview.category}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <IoStarSharp
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < featuredReview.rating
-                              ? "text-yellow-400"
-                              : "text-gray-300 dark:text-gray-600"
-                          }`}
-                        />
-                      ))}
+              <div className="relative">
+                {/* Decorative Glow */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-3xl blur-2xl"></div>
+
+                <Card className="relative hover:scale-105 transition-all duration-500 shadow-2xl border-2 border-white/20">
+                  <div className="p-8 bg-gradient-to-br from-white/95 to-white/90 backdrop-blur-xl">
+                    <div className="flex items-start justify-between mb-6">
+                      <span className="px-4 py-2 text-sm font-bold bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-full shadow-lg">
+                        {featuredReview.category}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <IoStarSharp
+                            key={i}
+                            className={`w-5 h-5 ${
+                              i < featuredReview.rating
+                                ? "text-yellow-400 drop-shadow-md"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
+                    <h3 className="text-3xl font-black mb-3 text-gray-900 leading-tight">
+                      {featuredReview.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-5 font-semibold">
+                      oleh {featuredReview.author}
+                    </p>
+                    <p className="text-gray-700 leading-relaxed text-lg">
+                      {featuredReview.excerpt}
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                    {featuredReview.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    oleh {featuredReview.author}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {featuredReview.excerpt}
-                  </p>
-                </div>
-              </Card>
+                </Card>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Recent Reviews Section */}
-      <section className="py-20 px-4">
+      <section className="py-24 px-4 bg-gradient-to-b from-gray-50 to-white">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+            <h2 className="text-5xl md:text-6xl font-black mb-6 text-gray-900 bg-gradient-to-r from-brand-700 to-brand-600 bg-clip-text text-transparent">
               Review Terbaru
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Temukan review buku terbaru dari komunitas kami
+            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto">
+              Temukan review buku terbaru dari komunitas kami yang passionate
+              tentang literasi
             </p>
           </motion.div>
 
@@ -190,51 +226,55 @@ export default function HomePage() {
             {recentReviews.map((review, index) => (
               <motion.div
                 key={review.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
                 viewport={{ once: true }}
               >
-                <Card hover className="h-full flex flex-col">
-                  <div className="relative">
-                    {/* Book Cover Placeholder */}
-                    <div className="h-48 bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
-                      <IoBookOutline className="w-16 h-16 text-white opacity-50" />
+                <Card
+                  hover
+                  className="h-full flex flex-col group overflow-hidden border-2 border-transparent hover:border-brand-200 transition-all duration-300"
+                >
+                  <div className="relative overflow-hidden">
+                    {/* Book Cover Placeholder with Gradient */}
+                    <div className="h-56 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 flex items-center justify-center relative group-hover:scale-110 transition-transform duration-500">
+                      <div className="absolute inset-0 bg-black/10"></div>
+                      <IoBookOutline className="w-20 h-20 text-white opacity-40 relative z-10 group-hover:opacity-60 transition-opacity" />
                     </div>
-                    <span className="absolute top-3 right-3 px-3 py-1 text-xs font-medium bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full">
+                    <span className="absolute top-4 right-4 px-4 py-2 text-xs font-bold bg-white/95 backdrop-blur-sm rounded-full shadow-lg">
                       {review.category}
                     </span>
                   </div>
 
-                  <Card.Content className="flex-1 flex flex-col">
-                    <div className="flex items-center gap-1 mb-3">
+                  <Card.Content className="flex-1 flex flex-col p-6">
+                    <div className="flex items-center gap-1 mb-4">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <IoStarSharp
                           key={i}
-                          className={`w-4 h-4 ${
+                          className={`w-5 h-5 ${
                             i < review.rating
-                              ? "text-yellow-400"
-                              : "text-gray-300 dark:text-gray-600"
+                              ? "text-yellow-400 drop-shadow-sm"
+                              : "text-gray-300"
                           }`}
                         />
                       ))}
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                    <h3 className="text-2xl font-black mb-3 text-gray-900 group-hover:text-brand-600 transition-colors">
                       {review.title}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    <p className="text-sm text-gray-600 mb-4 font-semibold">
                       oleh {review.author}
                     </p>
-                    <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-1">
+                    <p className="text-gray-700 mb-6 line-clamp-3 flex-1 leading-relaxed">
                       {review.excerpt}
                     </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-1">
-                        <IoEyeOutline className="w-4 h-4" />
+                    <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t-2 border-gray-100">
+                      <div className="flex items-center gap-2 font-medium">
+                        <IoEyeOutline className="w-5 h-5" />
                         <span>{review.views}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <IoHeartOutline className="w-4 h-4" />
+                      <div className="flex items-center gap-2 font-medium">
+                        <IoHeartOutline className="w-5 h-5 text-red-400" />
                         <span>{review.likes}</span>
                       </div>
                     </div>
@@ -247,12 +287,16 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
-            className="text-center mt-12"
+            className="text-center mt-16"
           >
             <Link href="/reviews">
-              <Button variant="outline" size="lg">
+              <Button
+                variant="outline"
+                size="lg"
+                className="shadow-lg hover:shadow-xl border-2 font-bold text-lg px-8 py-4 hover:scale-105 transition-all"
+              >
                 Lihat Semua Review
               </Button>
             </Link>
@@ -261,24 +305,39 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-brand-500 to-brand-600">
-        <div className="container-custom text-center">
+      <section className="py-28 px-4 bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-400 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container-custom text-center relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold mb-6 text-white">
-              Siap Berbagi Pengalaman Membacamu?
+            <h2 className="text-5xl md:text-6xl font-black mb-8 text-white leading-tight">
+              Siap Berbagi Pengalaman
+              <br />
+              Membacamu?
             </h2>
-            <p className="text-xl text-brand-50 mb-8 max-w-2xl mx-auto">
-              Bergabunglah dengan komunitas pembaca dan penulis review buku.
-              Mulai bagikan ceritamu hari ini!
+            <p className="text-xl md:text-2xl text-brand-50 mb-12 max-w-3xl mx-auto font-light leading-relaxed">
+              Bergabunglah dengan ribuan pembaca dan penulis review buku.
+              <br />
+              <span className="font-semibold text-yellow-200">
+                Mulai bagikan ceritamu hari ini!
+              </span>
             </p>
             <Link href="/auth/register">
-              <Button variant="secondary" size="lg">
-                Daftar Sekarang
+              <Button
+                variant="secondary"
+                size="lg"
+                className="shadow-2xl hover:shadow-accent-300/50 hover:scale-110 transition-all text-lg px-10 py-6 font-black"
+              >
+                <span className="text-xl">Daftar Sekarang - Gratis! 🚀</span>
               </Button>
             </Link>
           </motion.div>
