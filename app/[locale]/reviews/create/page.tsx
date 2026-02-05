@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   IoArrowBack,
   IoSave,
@@ -18,12 +18,12 @@ import {
   IoImage,
   IoLink,
   IoList,
-  IoClose,
   IoEye,
   IoCode,
 } from "react-icons/io5";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import { createClient } from "@/lib/supabase/client";
 
 export default function CreateReviewPage() {
   const { data: session, status } = useSession();
@@ -34,22 +34,37 @@ export default function CreateReviewPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [previewMode, setPreviewMode] = useState(false);
 
+  // Real Data State
+  const [categories, setCategories] = useState<any[]>([]);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+
   // Form State
   const [formData, setFormData] = useState({
     title: "",
     book_title: "",
     book_author: "",
-    category: "",
+    category_id: "", // Changed from category string to ID
     rating: 0,
     content: "",
-    cover_url: "", // Can be url or base64
+    cover_url: "", // Preview URL
   });
 
+  // Fetch Categories on Mount
+  useEffect(() => {
+    async function fetchCats() {
+      const supabase = createClient();
+      const { data } = await supabase.from("categories").select("id, name");
+      if (data) setCategories(data);
+    }
+    fetchCats();
+  }, []);
+
   // Redirect if not authenticated
-  if (status === "unauthenticated") {
-    // router.push("/auth/login"); // Let middleware handle or show accessible message
-    // return null;
-  }
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    }
+  }, [status, router]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -91,11 +106,10 @@ export default function CreateReviewPage() {
   };
 
   const handleFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, cover_url: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
+    setCoverFile(file); // Store file for upload
+    // Create preview URL
+    const preview = URL.createObjectURL(file);
+    setFormData((prev) => ({ ...prev, cover_url: preview }));
   };
 
   // --- Text Editor Toolbar ---
@@ -112,7 +126,6 @@ export default function CreateReviewPage() {
 
     setFormData((prev) => ({ ...prev, content: newText }));
 
-    // Reset focus and cursor slightly delayed
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
@@ -125,13 +138,15 @@ export default function CreateReviewPage() {
   };
 
   const handleInsertImageInContent = () => {
-    // Simulate click input for content image
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     input.onchange = (e: any) => {
       const file = e.target.files[0];
       if (file) {
+        // In a real app, we should upload this too.
+        // For now, let's just stick to base64 for content images or warn user.
+        // Or simple Markdown image syntax.
         const reader = new FileReader();
         reader.onload = (ev) => {
           const base64 = ev.target?.result as string;
@@ -162,18 +177,75 @@ export default function CreateReviewPage() {
       return;
     }
 
-    // Mock API Call
-    setTimeout(() => {
+    try {
+      const supabase = createClient();
+
+      // 1. Upload Cover (if exists)
+      let finalCoverUrl = null;
+
+      if (coverFile) {
+        const fileName = `${Date.now()}-${coverFile.name.replace(/\s/g, "_")}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("library-covers") // Reuse existing bucket
+          .upload(fileName, coverFile);
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("library-covers").getPublicUrl(fileName);
+
+        finalCoverUrl = publicUrl;
+      }
+
+      // 2. Insert Review to DB
+      // Generate Slug
+      const slug =
+        formData.book_title.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
+        "-" +
+        Date.now();
+
+      // Need user_id. Session gives email usually, but hook gives user object.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not found");
+
+      const { error: insertError } = await supabase
+        .from("book_reviews")
+        .insert({
+          title: formData.title,
+          book_title: formData.book_title,
+          book_author: formData.book_author,
+          content: formData.content,
+          rating: formData.rating,
+          book_cover_url: finalCoverUrl,
+          category_id: formData.category_id || null, // Optional
+          user_id: user.id,
+          slug: slug,
+          views: 0,
+        });
+
+      if (insertError) throw insertError;
+
       Swal.fire({
         icon: "success",
         title: "Review Berhasil Dibuat!",
         text: "Review Anda telah berhasil diterbitkan.",
         confirmButtonColor: "#4F46E5",
       }).then(() => {
-        router.push("/dashboard");
+        router.push("/dashboard/reviews"); // Redirect to My Reviews
       });
+    } catch (error: any) {
+      console.error("Submit Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan",
+        text: error.message || "Terjadi kesalahan saat menyimpan review.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -436,29 +508,23 @@ export default function CreateReviewPage() {
                   Kategori
                 </label>
                 <select
-                  name="category"
-                  value={formData.category}
+                  name="category_id"
+                  value={formData.category_id}
                   onChange={handleChange}
                   className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-brand-500 text-sm text-gray-900 dark:text-white appearance-none cursor-pointer"
                 >
                   <option value="" className="text-gray-500">
                     Pilih Kategori...
                   </option>
-                  <option value="fiksi" className="dark:bg-gray-900">
-                    Fiksi
-                  </option>
-                  <option value="non-fiksi" className="dark:bg-gray-900">
-                    Non-Fiksi
-                  </option>
-                  <option value="fantasi" className="dark:bg-gray-900">
-                    Fantasi
-                  </option>
-                  <option value="misteri" className="dark:bg-gray-900">
-                    Misteri
-                  </option>
-                  <option value="sains" className="dark:bg-gray-900">
-                    Sains
-                  </option>
+                  {categories.map((c) => (
+                    <option
+                      key={c.id}
+                      value={c.id}
+                      className="dark:bg-gray-900"
+                    >
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </motion.div>

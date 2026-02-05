@@ -2,12 +2,57 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [stats, setStats] = useState({
+    totalReviews: 0,
+    totalViews: 0,
+    totalLikes: 0,
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      if (session?.user?.email) {
+        const supabase = createClient();
+        // Get User ID from Auth (Safety check, or query by email if profile linked)
+        // RLS usually relies on auth.uid() which is available if session is valid
+        // But to query table "book_reviews" by "user_id", we need the ID.
+        // Since we are client side, we can get user.
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data } = await supabase
+            .from("book_reviews")
+            .select("views, rating, review_likes") // Assuming review_likes is here or we count from table
+            // Wait, earlier schema Check: existing reviews listing used "review_likes" number.
+            .eq("user_id", user.id);
+
+          if (data) {
+            const totalReviews = data.length;
+            const totalViews = data.reduce(
+              (acc, curr) => acc + (curr.views || 0),
+              0,
+            );
+            // For likes, if it's a number column:
+            const totalLikes = data.reduce(
+              (acc, curr) => acc + (curr.review_likes || 0),
+              0,
+            );
+
+            setStats({ totalReviews, totalViews, totalLikes });
+          }
+        }
+      }
+    }
+    if (status === "authenticated") fetchStats();
+  }, [session, status]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -107,7 +152,7 @@ export default function DashboardPage() {
             </motion.a>
           </div>
 
-          {/* Stats (placeholder) */}
+          {/* Stats with Real Data */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,7 +165,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">
-                  0
+                  {stats.totalReviews}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Total Review
@@ -128,7 +173,7 @@ export default function DashboardPage() {
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-accent-600 dark:text-accent-400 mb-2">
-                  0
+                  {stats.totalViews}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Total Views
@@ -136,7 +181,7 @@ export default function DashboardPage() {
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                  0
+                  {stats.totalLikes}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Total Likes
