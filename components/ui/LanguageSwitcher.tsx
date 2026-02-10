@@ -15,19 +15,22 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Extract current locale from pathname
-  const currentLocale = pathname.split("/")[1] || "id";
+  // Safer logic for path manipulation with "as-needed" locale prefix
+  const isEnglish = pathname.startsWith("/en");
+  const currentLocale = isEnglish ? "en" : "id";
 
   const switchLanguage = (newLocale: string) => {
-    // Replace locale in pathname
-    const segments = pathname.split("/");
-    if (segments[1] === "id" || segments[1] === "en") {
-      segments[1] = newLocale;
-    } else {
-      segments.splice(1, 0, newLocale);
+    let newPath = pathname;
+
+    // If switching to ID (default), remove '/en' prefix
+    if (newLocale === "id" && isEnglish) {
+      newPath = pathname.replace(/^\/en/, "") || "/";
+    }
+    // If switching to EN, add '/en' prefix (if not already there)
+    else if (newLocale === "en" && !isEnglish) {
+      newPath = `/en${pathname === "/" ? "" : pathname}`;
     }
 
-    const newPath = segments.join("/");
     router.push(newPath);
     setIsOpen(false);
   };
