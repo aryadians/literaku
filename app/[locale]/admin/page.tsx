@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { IoLibrary, IoPeople, IoChatbubbles, IoBook } from "react-icons/io5";
+import {
+  IoBook,
+  IoPeople,
+  IoChatbubbles,
+  IoEye,
+  IoHeart,
+  IoCloudUpload,
+  IoLibrary,
+} from "react-icons/io5";
 import { Card } from "@/components/ui/Card";
 import Link from "next/link";
 

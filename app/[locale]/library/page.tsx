@@ -144,7 +144,7 @@ export default async function LibraryPage({
               <IoBook className="text-brand-500" />
               {categoryFilter ? `Kategori: ${categoryFilter}` : "Semua Koleksi"}
               <span className="text-sm font-normal text-gray-500 ml-2">
-                ({books.length} buku)
+                ({books?.length || 0} buku)
               </span>
             </h2>
           </div>

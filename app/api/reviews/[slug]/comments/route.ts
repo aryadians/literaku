@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { slug: string } },
+  props: { params: Promise<{ slug: string }> },
 ) {
+  const params = await props.params;
+  const slug = params.slug;
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,7 +16,6 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const slug = params.slug;
   const body = await request.json();
   const { content } = body;
 
@@ -34,8 +35,6 @@ export async function POST(
   }
 
   // 2. Insert Comment
-  // Note: We perform a select after insert to get the profile data if the relation is set up correctly in Supabase
-  // If profiles relation fails, we might return just the comment and rely on frontend or separate fetch
   const { data: comment, error: insertError } = await supabase
     .from("comments")
     .insert({

@@ -55,6 +55,7 @@ It allows users to:
   - **Admin**: Dashboard, Books (List/Edit/Delete), Users, Reviews.
   - **Library**: Search, Category Filter.
   - **User**: Profile Management, Avatar Upload.
+  - **Social**: Likes, Comments, Reading History, Notifications.
 - **Pending**: 
   - Social login providers (Google/GitHub) need real keys.
 

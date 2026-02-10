@@ -207,7 +207,7 @@ function ReviewsContent() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {reviews.map((review, index) => (
+            {reviews.map((review: any, index: number) => (
               <motion.div
                 key={review.id}
                 initial={{ opacity: 0, y: 20 }}

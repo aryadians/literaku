@@ -26,29 +26,18 @@ export default function HomePage() {
   // We should create /api/books or keep using Supabase client but wrapped in SWR.
   // Let's use the inline SWR fetcher for now for simplicity and performance.
 
-  const { data: booksData } = useSWR("home-books", async () => {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("books")
-      .select("*, categories(name)")
-      .order("created_at", { ascending: false })
-      .limit(4);
-    return data || [];
+  const { data: booksData } = useSWR("/api/books/latest", async (url) => {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data;
   });
   const books = booksData || [];
 
-  const { data: reviewsData, isLoading: reviewsLoading } = useSWR(
-    "home-reviews",
-    async () => {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("book_reviews")
-        .select("*, categories(name), profiles(name)")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      return data || [];
-    },
-  );
+  const { data: reviewsData } = useSWR("/api/reviews/latest", async (url) => {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data;
+  });
   const reviews = reviewsData || [];
   const isLoading = !booksData && !reviewsData; // Simplified loading state
 
@@ -68,7 +57,7 @@ export default function HomePage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.5, ease: "easeOut" as const },
     },
   };
 
@@ -257,7 +246,7 @@ export default function HomePage() {
                     className="aspect-[2/3] bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"
                   />
                 ))
-              : books.map((book) => (
+              : books.map((book: any) => (
                   <motion.div key={book.id} variants={itemVariants}>
                     <Link href={`/read/${book.slug}`} className="group block">
                       <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-lg">
@@ -316,7 +305,7 @@ export default function HomePage() {
                     className="h-64 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"
                   />
                 ))
-              : reviews.map((review) => (
+              : reviews.map((review: any) => (
                   <motion.div key={review.id} variants={itemVariants}>
                     <Link
                       href={`/reviews/${review.slug}`}

@@ -110,20 +110,31 @@ export default function ReviewDetailPage() {
               .single();
 
             if (!error && newComment) {
-              setReview((prev) => {
-                if (!prev) return null;
-                // Prevent duplicate if we just added it manually via form
-                if (prev.review_comments?.some((c) => c.id === newComment.id)) {
-                  return prev;
-                }
-                return {
-                  ...prev,
-                  review_comments: [
-                    newComment,
-                    ...(prev.review_comments || []),
-                  ],
-                };
-              });
+              // Fetch full comment with profile to satisfy type
+              const { data: fullComment } = await supabase
+                .from("comments")
+                .select("*, profiles(name, avatar_url)")
+                .eq("id", newComment.id)
+                .single();
+
+              if (fullComment) {
+                setReview((prev) => {
+                  if (!prev) return null;
+                  // Prevent duplicate if we just added it manually via form
+                  if (
+                    prev.review_comments?.some((c) => c.id === fullComment.id)
+                  ) {
+                    return prev;
+                  }
+                  return {
+                    ...prev,
+                    review_comments: [
+                      fullComment,
+                      ...(prev.review_comments || []),
+                    ],
+                  };
+                });
+              }
             }
           },
         )

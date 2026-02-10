@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import {
   IoArrowBack,
@@ -8,11 +9,16 @@ import {
   IoDownload,
   IoCreateOutline,
   IoCheckbox,
+  IoChevronBack,
+  IoMenu,
+  IoBookmark,
 } from "react-icons/io5";
+import { useSession } from "next-auth/react";
 import { ReadingNotes } from "./ReadingNotes";
 
 export default function ReaderInterface({ book }: { book: any }) {
   const { data: session } = useSession();
+  const supabase = createClient();
 
   // Track History on Mount
   useEffect(() => {

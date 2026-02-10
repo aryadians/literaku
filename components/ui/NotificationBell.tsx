@@ -35,7 +35,7 @@ export function NotificationBell() {
       const { data } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", session.user.id) // Assuming session.user.id matches DB uuid
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -150,8 +150,27 @@ export function NotificationBell() {
                 notifications.map((notif) => (
                   <Link
                     key={notif.id}
-                    href={`/reviews/${notif.reference_slug}`}
-                    onClick={() => setIsOpen(false)}
+                    href={
+                      notif.reference_slug
+                        ? `/reviews/${notif.reference_slug}`
+                        : "#"
+                    }
+                    onClick={async () => {
+                      setIsOpen(false);
+                      // Mark as read on click
+                      if (!notif.is_read) {
+                        await supabase
+                          .from("notifications")
+                          .update({ is_read: true })
+                          .eq("id", notif.id);
+                        setNotifications((prev) =>
+                          prev.map((n) =>
+                            n.id === notif.id ? { ...n, is_read: true } : n,
+                          ),
+                        );
+                        setUnreadCount((prev) => Math.max(0, prev - 1));
+                      }
+                    }}
                     className={`block p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
                       !notif.is_read
                         ? "bg-brand-50/30 dark:bg-brand-900/10"
