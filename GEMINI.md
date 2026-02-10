@@ -50,8 +50,12 @@ It allows users to:
 ## Current Status
 - **Core**: Stable & Production Ready.
 - **UI**: Modern Bento Grid, Dark Mode supported.
+- **Modules**:
+  - **Start**: `npm install`, then `npm run dev`.
+  - **Admin**: Dashboard, Books (List/Edit/Delete), Users, Reviews.
+  - **Library**: Search, Category Filter.
+  - **User**: Profile Management, Avatar Upload.
 - **Pending**: 
-  - Edit Book functionality (currently List/Delete/Upload).
   - Social login providers (Google/GitHub) need real keys.
 
 ## Quick Start

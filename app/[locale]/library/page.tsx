@@ -24,49 +24,41 @@ export default async function LibraryPage({
     .select("name, slug")
     .order("name");
 
-  // 2. Build Query - Fetching from NEW 'books' table for the PDF Library
-  let query = supabase
-    .from("books")
-    .select(
-      `
-      id,
-      title,
-      slug,
-      author,
-      cover_url,
-      description,
-      year,
-      categories (
-        name,
-        slug
-      )
+  // 2. Build Query
+  let query = supabase.from("books").select(
+    `
+      *,
+      categories (name, slug)
     `,
-    )
-    .order("created_at", { ascending: false });
+    { count: "exact" },
+  );
 
-  // Note: We can add server-side filtering here if needed, sticking to client filter for consistency with previous code structure
-  // unless pagination is key.
-
-  const { data: allBooks, error } = await query;
-
-  if (error) {
-    console.error("Error fetching library:", error);
-  }
-
-  // Client-side filter fallback (safe for small dataset)
-  let books = allBooks || [];
-
+  // Server-side filtering
   if (categoryFilter) {
-    books = books.filter((b: any) => b.categories?.slug === categoryFilter);
+    // We need to filter by category slug.
+    // Since it's a relation (categories.slug), we use !inner to filter by related table
+    query = query.eq("categories.slug", categoryFilter);
+    // Note: If using simple foreign key 'category_id', we could just use .eq('category_id', id)
+    // But we are filtering by slug, so we rely on the relation filter.
+    // However, Supabase inner join filtering slightly changes the data structure or requires specific syntax.
+    // A simpler way often used is filtering by the foreign key column if we knew the ID,
+    // but here we only have slug.
+    // Let's stick to the relational filter syntax:
+    // .not('categories', 'is', null) // ensures inner join if needed, but .eq on inner table usually implies it
   }
 
   if (searchFilter) {
-    const lowerSearch = (searchFilter as string).toLowerCase();
-    books = books.filter(
-      (b: any) =>
-        b.title.toLowerCase().includes(lowerSearch) ||
-        b.author.toLowerCase().includes(lowerSearch),
+    query = query.or(
+      `title.ilike.%${searchFilter}%,author.ilike.%${searchFilter}%`,
     );
+  }
+
+  const { data: books, error } = await query.order("created_at", {
+    ascending: false,
+  });
+
+  if (error) {
+    console.error("Error fetching library:", error);
   }
 
   // Featured book (latest)

@@ -161,6 +161,14 @@ export default function AdminBooksPage() {
                     </td>
                     <td className="px-6 py-4">{book.year}</td>
                     <td className="px-6 py-4 text-right space-x-2">
+                      <Link href={`/admin/books/edit/${book.id}`}>
+                        <button
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <IoCreate className="w-5 h-5" />
+                        </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(book.id, book.title)}
                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"

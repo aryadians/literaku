@@ -178,6 +178,13 @@ export function Header() {
                         </div>
                         <div className="p-2">
                           <Link
+                            href="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <IoPerson className="w-4 h-4" /> Profile
+                          </Link>
+                          <Link
                             href="/dashboard"
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -282,6 +289,13 @@ export function Header() {
                           </p>
                         </div>
                       </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <IoPerson /> Profile
+                      </Link>
                       <Link
                         href="/dashboard"
                         onClick={() => setIsMenuOpen(false)}
