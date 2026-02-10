@@ -51,7 +51,7 @@ It allows users to:
 - **Core**: Stable & Production Ready.
 - **UI**: Modern Bento Grid, Dark Mode supported.
 - **Pending**: 
-  - Advanced Admin Dashboard implementation (currently only Upload).
+  - Edit Book functionality (currently List/Delete/Upload).
   - Social login providers (Google/GitHub) need real keys.
 
 ## Quick Start
