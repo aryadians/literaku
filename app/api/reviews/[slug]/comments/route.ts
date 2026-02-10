@@ -37,7 +37,7 @@ export async function POST(
   // Note: We perform a select after insert to get the profile data if the relation is set up correctly in Supabase
   // If profiles relation fails, we might return just the comment and rely on frontend or separate fetch
   const { data: comment, error: insertError } = await supabase
-    .from("review_comments")
+    .from("comments")
     .insert({
       review_id: review.id,
       user_id: user.id,

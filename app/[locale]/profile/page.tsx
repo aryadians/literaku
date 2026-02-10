@@ -23,6 +23,7 @@ export default function ProfilePage() {
     booksRead: 0,
     reviews: 0,
   });
+  const [readHistory, setReadHistory] = useState<any[]>([]); // New State
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -65,10 +66,36 @@ export default function ProfilePage() {
           .select("*", { count: "exact", head: true })
           .eq("user_id", userProfile.id);
 
+        const { count: historyCount } = await supabase
+          .from("read_history")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userProfile.id);
+
         setStats({
-          booksRead: 0, // Need 'read_history' table? For now placeholder.
+          booksRead: historyCount || 0,
           reviews: reviewsCount || 0,
         });
+
+        // 3. Fetch Read History List
+        const { data: historyData } = await supabase
+          .from("read_history")
+          .select(
+            `
+            last_read_at,
+            books (
+              id,
+              title,
+              slug,
+              cover_url,
+              author
+            )
+          `,
+          )
+          .eq("user_id", userProfile.id)
+          .order("last_read_at", { ascending: false })
+          .limit(5);
+
+        setReadHistory(historyData || []);
       }
 
       setLoading(false);
@@ -181,13 +208,70 @@ export default function ProfilePage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                  -
+                  {stats.booksRead}
                 </div>
                 <div className="text-xs text-gray-500 uppercase tracking-wide">
                   Buku Dibaca
                 </div>
               </div>
             </div>
+          </Card>
+
+          {/* Reading History */}
+          <Card className="p-6 mt-6">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <IoBook className="text-brand-500" />
+              Riwayat Baca
+            </h3>
+            {stats.booksRead === 0 ? (
+              <p className="text-xs text-gray-500 text-center py-4">
+                Belum ada buku dibaca.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {readHistory.map((item: any) => (
+                  <a
+                    key={item.books.id}
+                    href={`/read/${item.books.slug}`}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                  >
+                    <div className="w-10 h-14 bg-gray-200 rounded overflow-hidden relative flex-shrink-0">
+                      {item.books.cover_url ? (
+                        <img
+                          src={item.books.cover_url}
+                          alt={item.books.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <IoBook />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate">
+                        {item.books.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 truncate">
+                        {item.books.author}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+
+                {stats.booksRead > 5 && (
+                  <div className="pt-2 text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs w-full"
+                    >
+                      Lihat Semua Riwayat
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </div>
 

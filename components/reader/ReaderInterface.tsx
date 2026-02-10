@@ -11,11 +11,36 @@ import {
 } from "react-icons/io5";
 import { ReadingNotes } from "./ReadingNotes";
 
-interface ReaderInterfaceProps {
-  book: any;
-}
+export default function ReaderInterface({ book }: { book: any }) {
+  const { data: session } = useSession();
 
-export default function ReaderInterface({ book }: ReaderInterfaceProps) {
+  // Track History on Mount
+  useEffect(() => {
+    if (session?.user?.email && book?.id) {
+      const recordHistory = async () => {
+        // Get user ID first
+        const { data: user } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", session.user.email)
+          .single();
+
+        if (user) {
+          // Upsert into read_history
+          await supabase.from("read_history").upsert(
+            {
+              user_id: user.id,
+              book_id: book.id,
+              last_read_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id, book_id" },
+          );
+        }
+      };
+      recordHistory();
+    }
+  }, [session, book]);
+
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
   return (
