@@ -22,12 +22,8 @@ interface Block {
   content: string;
 }
 
-interface Note {
-  id: string;
-  title: string;
-  content: Block[];
-  is_favorite: boolean;
-}
+import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 
 export default function CanvasEditor({
   note,
@@ -37,6 +33,7 @@ export default function CanvasEditor({
   onBack: () => void;
 }) {
   const t = useTranslations("canvas.editor");
+  const { data: session } = useSession();
   const [title, setTitle] = useState(note.title);
   const [blocks, setBlocks] = useState<Block[]>(note.content || []);
   const [isSaving, setIsSaving] = useState(false);
@@ -48,20 +45,26 @@ export default function CanvasEditor({
       if (isSaving) return;
       setIsSaving(true);
       try {
-        const res = await fetch(`/api/canvas/${note.id}`, {
+        const response = await fetch(`/api/canvas?id=${note.id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             title,
             content: blocks,
             is_favorite: isFavorite,
           }),
         });
-        if (res.ok) {
-          setLastSaved(new Date());
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to save note");
         }
-      } catch (err) {
-        console.error(err);
+
+        setLastSaved(new Date());
+      } catch (err: any) {
+        console.error("Save error:", err);
       } finally {
         setIsSaving(false);
       }
@@ -95,15 +98,61 @@ export default function CanvasEditor({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Supabase Storage implementation would go here
-    // For now, we'll use Base64 to show it works immediately
-    // In production, upload to 'canvas-media' bucket
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setBlocks([...blocks, { type: "image", content: base64 }]);
-    };
-    reader.readAsDataURL(file);
+    setIsSaving(true);
+    const supabase = createClient();
+    try {
+      // Get the correct UUID from profiles first
+      const {
+        data: { user: sbUser },
+      } = await supabase.auth.getUser();
+      let userId = sbUser?.id;
+
+      if (!userId && session?.user?.email) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", session.user.email)
+          .single();
+        userId = profile?.id;
+      }
+
+      if (!userId) userId = session?.user?.id;
+
+      const fileName = `${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+      // Note: We could use profile.id in path if needed for security
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("canvas-media")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        // Fallback for demo/if bucket missing
+        if (uploadError.message.includes("not found")) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            setBlocks([...blocks, { type: "image", content: base64 }]);
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+        throw uploadError;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("canvas-media").getPublicUrl(fileName);
+
+      setBlocks([...blocks, { type: "image", content: publicUrl }]);
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: err.message,
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const deleteNote = async () => {
@@ -116,8 +165,20 @@ export default function CanvasEditor({
     });
 
     if (result.isConfirmed) {
-      const res = await fetch(`/api/canvas/${note.id}`, { method: "DELETE" });
-      if (res.ok) onBack();
+      try {
+        const response = await fetch(`/api/canvas?id=${note.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to delete note");
+        }
+
+        onBack();
+      } catch (err: any) {
+        Swal.fire("Error", err.message, "error");
+      }
     }
   };
 

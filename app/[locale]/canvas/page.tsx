@@ -15,14 +15,32 @@ import CanvasEditor from "@/components/canvas/CanvasEditor";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import useSWR from "swr";
-import { fetcher } from "@/lib/fetcher";
+import { createClient } from "@/lib/supabase/client";
+import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function CanvasPage() {
   const t = useTranslations("canvas");
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, mutate, isLoading } = useSWR("/api/canvas", fetcher);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    }
+  }, [status, router]);
+
+  const { data, mutate, isLoading } = useSWR(
+    status === "authenticated" ? ["canvas-notes", session?.user?.id] : null,
+    async () => {
+      const response = await fetch("/api/canvas");
+      if (!response.ok) throw new Error("Failed to fetch notes");
+      return response.json();
+    },
+  );
   const notes = data?.notes || [];
 
   const filteredNotes = notes.filter((n: any) =>
@@ -30,17 +48,59 @@ export default function CanvasPage() {
   );
 
   const createNote = async () => {
-    const res = await fetch("/api/canvas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: t("untitled"), content: [] }),
-    });
-    if (res.ok) {
-      const { note } = await res.json();
-      mutate();
-      setSelectedNoteId(note.id);
+    try {
+      if (status !== "authenticated") {
+        throw new Error("Silakan login terlebih dahulu.");
+      }
+
+      const response = await fetch("/api/canvas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: t("untitled"),
+          content: [],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.code === "42501") {
+          throw new Error(
+            "Maaf, Anda tidak memiliki izin untuk membuat catatan.",
+          );
+        }
+        throw new Error(errorData.error || "Gagal membuat catatan.");
+      }
+
+      const note = await response.json();
+
+      if (note) {
+        mutate();
+        setSelectedNoteId(note.id);
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Membuat Catatan",
+        text: err.message || "Terjadi kesalahan saat menghubungi database.",
+      });
     }
   };
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return null; // Effect will redirect
+  }
 
   const selectedNote = notes.find((n: any) => n.id === selectedNoteId);
 
@@ -140,13 +200,20 @@ export default function CanvasPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <CanvasEditor
-                note={selectedNote}
-                onBack={() => {
-                  setSelectedNoteId(null);
-                  mutate();
-                }}
-              />
+              {selectedNote ? (
+                <CanvasEditor
+                  note={selectedNote}
+                  onBack={() => {
+                    setSelectedNoteId(null);
+                    mutate();
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                  <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-gray-500">Loading note...</p>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
