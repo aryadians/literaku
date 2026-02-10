@@ -12,31 +12,51 @@
     "search": "Cari...",
     "filter": "Filter",
     "sortBy": "Urutkan",
+    "success": "Berhasil!",
+    "errorFetching": "Gagal memuat data.",
     "latest": "Terbaru",
     "popular": "Populer",
-    "rating": "Rating"
+    "rating": "Rating",
+    "searchPlaceholder": "Cari buku..."
   },
   "nav": {
     "home": "Beranda",
+    "library": "Perpustakaan",
     "reviews": "Semua Review",
     "categories": "Kategori",
     "about": "Tentang",
+    "canvas": "Kanvas",
     "dashboard": "Dashboard",
     "profile": "Profil",
     "login": "Masuk",
     "logout": "Keluar",
-    "register": "Daftar"
+    "register": "Daftar",
+    "writeReview": "Tulis Review"
   },
   "home": {
     "hero": {
-      "title": "Temukan Dunia Baru",
-      "subtitle": "Melalui Halaman Buku",
-      "description": "Catatan bacaan, review buku, dan rekomendasi literasi untuk pecinta buku di Indonesia",
-      "cta": "Jelajahi Review"
+      "badge": "Perpustakaan Digital",
+      "title": "Baca. Review.",
+      "titleAccent": "Terinspirasi.",
+      "description": "Akses koleksi buku digital eksklusif dan bagikan pemikiranmu bersama komunitas pembaca Literaku.",
+      "ctaStart": "Mulai Baca",
+      "ctaExplore": "Explore Review"
     },
-    "featured": "Review Pilihan",
-    "recent": "Review Terbaru",
-    "categories": "Kategori"
+    "bento": {
+      "newArrival": "Kedatangan Baru",
+      "booksAvailable": "Buku Tersedia"
+    },
+    "featured": {
+      "title": "Koleksi Pilihan",
+      "subtitle": "Buku digital terbaru yang siap dibaca.",
+      "viewAll": "Lihat Semua"
+    },
+    "reviews": {
+      "title": "Suara Pembaca",
+      "subtitle": "Ulasan jujur dan mendalam dari komunitas Literaku.",
+      "role": "Reviewer",
+      "read": "Baca"
+    }
   },
   "review": {
     "title": "Review Buku",
@@ -109,10 +129,173 @@
     "registerLink": "Daftar sekarang",
     "loginLink": "Masuk di sini"
   },
+  "reviewDetail": {
+    "share": {
+      "title": "Bagikan Review Ini",
+      "copyLink": "Salin Link",
+      "success": "Link Disalin!"
+    },
+    "auth": {
+      "title": "Login Diperlukan",
+      "likeText": "Silakan login terlebih dahulu untuk menyukai review ini.",
+      "commentText": "Silakan login terlebih dahulu untuk bergabung dalam diskusi.",
+      "login": "Login",
+      "cancel": "Batal"
+    },
+    "hero": {
+      "subtitle": "Review buku \"{title}\" karya {author}",
+      "backToList": "Kembali ke Daftar Review",
+      "reviewedBy": "Direview oleh",
+      "anonymous": "Anonymous"
+    },
+    "loginWall": {
+      "title": "Baca Selengkapnya?",
+      "description": "Buka akses penuh ke ulasan ini dan ribuan konten menarik lainnya dengan masuk ke akun Anda.",
+      "cta": "Masuk ke Akun",
+      "noAccount": "Belum punya akun?",
+      "register": "Daftar Gratis"
+    },
+    "engagement": {
+      "likes": "Suka",
+      "views": "Views",
+      "share": "Bagikan"
+    },
+    "sidebar": {
+      "aboutReviewer": "Tentang Reviewer",
+      "joined": "Bergabung sejak",
+      "viewProfile": "Lihat Profil"
+    },
+    "comments": {
+      "title": "Diskusi & Komentar",
+      "empty": "Belum ada komentar. Jadilah yang pertama!",
+      "form": {
+        "title": "Tulis Tanggapan Anda",
+        "placeholder": "Bagikan pendapat cerdas Anda tentang buku ini...",
+        "submit": "Kirim Komentar",
+        "markdown": "Markdown Supported"
+      },
+      "guest": {
+        "title": "Ingin ikut berdiskusi?",
+        "description": "Bergabunglah dengan komunitas Literaku untuk memberikan kritik, saran, dan bertukar pikiran.",
+        "cta": "Masuk ke Akun"
+      }
+    }
+  },
   "footer": {
     "tagline": "Platform berbagi review dan catatan bacaan untuk para pecinta buku",
     "quickLinks": "Tautan Cepat",
     "followUs": "Ikuti Kami",
     "allRightsReserved": "Hak Cipta Dilindungi"
+  },
+  "reviewList": {
+    "title": "Semua Review",
+    "hero": {
+      "title": "Review Buku",
+      "description": "Baca ulasan mendalam dari komunitas dan bagikan pemikiranmu."
+    },
+    "search": {
+      "placeholder": "Cari judul review atau buku...",
+      "results": "Hasil pencarian untuk: "
+    },
+    "filter": {
+      "all": "Semua Kategori",
+      "sortBy": "Urutkan",
+      "newest": "Terbaru",
+      "popular": "Populer",
+      "oldest": "Terlama",
+      "bestRating": "Rating Terbaik",
+      "reset": "Reset Filter"
+    },
+    "countFound": "review ditemukan",
+    "empty": {
+      "title": "Belum Ada Review",
+      "description": "Jadilah yang pertama membagikan pemikiranmu tentang buku!",
+      "cta": "Tulis Review Pertama"
+    },
+    "card": {
+      "read": "Baca Selengkapnya"
+    }
+  },
+  "library": {
+    "title": "Perpustakaan Digital",
+    "hero": {
+      "title": "Perpustakaan Digital",
+      "description": "Baca koleksi buku digital (PDF) terbaik kami. Akses gratis untuk seluruh anggota."
+    },
+    "search": {
+      "placeholder": "Cari judul buku, penulis, atau topik..."
+    },
+    "filter": {
+      "title": "Kategori",
+      "all": "Semua Buku"
+    },
+    "staff": {
+      "label": "Area Petugas",
+      "upload": "Upload Buku"
+    },
+    "main": {
+      "allCollections": "Semua Koleksi",
+      "category": "Kategori",
+      "count": "buku"
+    },
+    "empty": {
+      "title": "Perpustakaan Belum Terisi",
+      "description": "Belum ada buku digital yang diunggah. Sebagai Admin, Anda bisa menambahkan buku pertama.",
+      "cta": "+ Upload Buku Sekarang"
+    },
+    "card": {
+      "read": "BACA BUKU"
+    }
+  },
+  "about": {
+    "title": "Tentang",
+    "mission": {
+      "title": "Misi Kami",
+      "subtitle": "Literaku hadir dengan visi sederhana namun ambisius: Mendemokratisasi akses literasi dan membangun budaya membaca yang kuat di Indonesia.",
+      "description": "Kami percaya bahwa buku adalah jendela dunia, dan setiap orang berhak mendapatkan akses ke pengetahuan dan hiburan yang berkualitas. Melalui teknologi, kami menghubungkan pembaca, penulis, dan buku dalam satu ekosistem yang inklusif."
+    },
+    "features": {
+      "title": "Mengapa Memilih Literaku?",
+      "subtitle": "Platform lengkap untuk menunjang perjalanan literasi Anda.",
+      "items": {
+        "digitalLibrary": {
+          "title": "Perpustakaan Digital",
+          "description": "Akses ribuan buku digital dari berbagai genre dan kategori secara gratis dan mudah."
+        },
+        "reviewDiscussion": {
+          "title": "Review & Diskusi",
+          "description": "Bagikan ulasan Anda, baca pandangan orang lain, dan berdiskusi tentang buku favorit."
+        },
+        "community": {
+          "title": "Komunitas Literasi",
+          "description": "Terhubung dengan sesama pecinta buku, penulis, dan pegiat literasi di seluruh Indonesia."
+        },
+        "readingHistory": {
+          "title": "Jejak Bacaan",
+          "description": "Pantau progres membaca Anda dan bangun portofolio literasi pribadi Anda."
+        }
+      }
+    }
+  },
+  "canvas": {
+    "title": "Canvas & Coretan",
+    "description": "Tempat untuk menuangkan pikiran, ide, dan inspirasi visualmu.",
+    "newNote": "Catatan Baru",
+    "untitled": "Catatan Tanpa Judul",
+    "search": "Cari catatan...",
+    "empty": {
+      "title": "Belum Ada Catatan",
+      "description": "Mulai dengan membuat coretan atau catatan pertamamu.",
+      "cta": "Buat Catatan Pertama"
+    },
+    "editor": {
+      "placeholder": "Mulai tulis pikiranmu di sini...",
+      "save": "Simpan Perubahan",
+      "saving": "Menyimpan...",
+      "delete": "Hapus Catatan",
+      "back": "Kembali ke Daftar",
+      "uploadImage": "Unggah Gambar",
+      "titlePlaceholder": "Judul Catatan"
+    }
   }
 }

@@ -1,20 +1,32 @@
 import { createClient } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import Image from "next/image";
 import { FaStar, FaSearch, FaFilter, FaBookOpen } from "react-icons/fa";
 import { IoBook } from "react-icons/io5";
 
-export const metadata = {
-  title: "Perpustakaan Digital - Literaku",
-  description:
-    "Koleksi lengkap buku dan ulasan terbaik untuk inspirasi bacamu.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "library" });
+  return {
+    title: `${t("title")} - Literaku`,
+    description: t("hero.description"),
+  };
+}
 
 export default async function LibraryPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "library" });
   const supabase = await createClient();
   const { category: categoryFilter, search: searchFilter } = await searchParams;
 
@@ -72,11 +84,10 @@ export default async function LibraryPage({
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-12">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400">
-              Perpustakaan Digital
+              {t("hero.title")}
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Baca koleksi buku digital (PDF) terbaik kami. Akses gratis untuk
-              seluruh anggota.
+              {t("hero.description")}
             </p>
           </div>
 
@@ -90,7 +101,7 @@ export default async function LibraryPage({
                 type="text"
                 name="search"
                 defaultValue={searchFilter as string}
-                placeholder="Cari judul buku, penulis, atau topik..."
+                placeholder={t("search.placeholder")}
                 className="block w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg focus:ring-0 focus:border-brand-500 hover:border-brand-200 dark:hover:border-brand-800 transition-all duration-300 text-lg"
               />
             </form>
@@ -103,14 +114,14 @@ export default async function LibraryPage({
         <aside className="w-full lg:w-64 flex-shrink-0">
           <div className="sticky top-24 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <h3 className="flex items-center gap-2 font-bold text-lg mb-6 text-gray-900 dark:text-white">
-              <FaFilter className="text-brand-500" /> Kategori
+              <FaFilter className="text-brand-500" /> {t("filter.title")}
             </h3>
             <nav className="space-y-2">
               <Link
                 href="/library"
                 className={`block px-4 py-2 rounded-lg transition-colors ${!categoryFilter ? "bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 font-medium" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
               >
-                Semua Buku
+                {t("filter.all")}
               </Link>
               {categories?.map((cat: any) => (
                 <Link
@@ -126,11 +137,11 @@ export default async function LibraryPage({
             {/* Admin Action */}
             <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-6">
               <p className="text-xs text-center text-gray-400 mb-2">
-                Area Petugas
+                {t("staff.label")}
               </p>
               <Link href="/admin/upload">
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
-                  Upload Buku
+                  {t("staff.upload")}
                 </button>
               </Link>
             </div>
@@ -142,9 +153,11 @@ export default async function LibraryPage({
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <IoBook className="text-brand-500" />
-              {categoryFilter ? `Kategori: ${categoryFilter}` : "Semua Koleksi"}
+              {categoryFilter
+                ? `${t("main.category")}: ${categoryFilter}`
+                : t("main.allCollections")}
               <span className="text-sm font-normal text-gray-500 ml-2">
-                ({books?.length || 0} buku)
+                ({books?.length || 0} {t("main.count")})
               </span>
             </h2>
           </div>
@@ -155,17 +168,16 @@ export default async function LibraryPage({
                 <FaBookOpen className="w-10 h-10" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Perpustakaan Belum Terisi
+                {t("empty.title")}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                Belum ada buku digital yang diunggah. Sebagai Admin, Anda bisa
-                menambahkan buku pertama.
+                {t("empty.description")}
               </p>
               <Link
                 href="/admin/upload"
                 className="inline-block px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-bold shadow-lg shadow-brand-500/30 transition-all hover:-translate-y-1"
               >
-                + Upload Buku Sekarang
+                {t("empty.cta")}
               </Link>
             </div>
           ) : (
@@ -196,7 +208,7 @@ export default async function LibraryPage({
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
                       <button className="w-full py-2 bg-brand-600 text-white text-sm font-bold rounded-lg shadow-lg">
-                        BACA BUKU
+                        {t("card.read")}
                       </button>
                     </div>
                   </Link>

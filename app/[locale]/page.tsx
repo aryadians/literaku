@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useTranslations } from "next-intl";
 import useSWR from "swr"; // Added SWR import
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +16,8 @@ import {
 } from "react-icons/io5";
 
 export default function HomePage() {
+  const t = useTranslations("home");
+  const tc = useTranslations("common");
   // Use SWR for caching and performance
   // We can use a custom hook or just swr
   // Fetching Books (Mocking API endpoint since we don't have one for "latest books" specifically,
@@ -39,6 +41,7 @@ export default function HomePage() {
     return data;
   });
   const reviews = reviewsData || [];
+
   const isLoading = !booksData && !reviewsData; // Simplified loading state
 
   // Animation Variants for Staggered Effects
@@ -75,17 +78,16 @@ export default function HomePage() {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-semibold tracking-wide uppercase mb-6">
                 <span className="w-2 h-2 rounded-full bg-brand-500"></span>
-                Digital Library
+                {t("hero.badge")}
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight text-gray-900 dark:text-white">
-                Baca. Review. <br />
+                {t("hero.title")} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">
-                  Terinspirasi.
+                  {t("hero.titleAccent")}
                 </span>
               </h1>
               <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed max-w-md">
-                Akses koleksi buku digital eksklusif dan bagikan pemikiranmu
-                bersama komunitas pembaca Literaku.
+                {t("hero.description")}
               </p>
               <div className="flex gap-4">
                 <Link href="/library">
@@ -93,7 +95,7 @@ export default function HomePage() {
                     size="lg"
                     className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full px-8 hover:opacity-90 transition-opacity"
                   >
-                    Mulai Baca
+                    {t("hero.ctaStart")}
                   </Button>
                 </Link>
                 <Link href="/reviews">
@@ -102,7 +104,7 @@ export default function HomePage() {
                     size="lg"
                     className="rounded-full px-8 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
                   >
-                    Explore Review
+                    {t("hero.ctaExplore")}
                   </Button>
                 </Link>
               </div>
@@ -139,7 +141,7 @@ export default function HomePage() {
                     )}
                     <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                       <p className="text-white text-xs font-medium uppercase opacity-80 mb-1">
-                        New Arrival
+                        {t("bento.newArrival")}
                       </p>
                       <h3 className="text-white text-xl font-bold leading-tight">
                         {books[0].title}
@@ -202,7 +204,7 @@ export default function HomePage() {
                     {books?.length || 0}+
                   </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Buku Tersedia
+                    {t("bento.booksAvailable")}
                   </span>
                 </Link>
               </motion.div>
@@ -217,17 +219,17 @@ export default function HomePage() {
           <div className="flex items-end justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Koleksi Pilihan
+                {t("featured.title")}
               </h2>
               <p className="text-gray-500 dark:text-gray-400">
-                Buku digital terbaru yang siap dibaca.
+                {t("featured.subtitle")}
               </p>
             </div>
             <Link
               href="/library"
               className="group flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white hover:text-brand-600 transition-colors"
             >
-              Lihat Semua
+              {t("featured.viewAll")}
               <IoArrowForward className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -284,10 +286,10 @@ export default function HomePage() {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Suara Pembaca
+              {t("reviews.title")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-              Ulasan jujur dan mendalam dari komunitas Literaku.
+              {t("reviews.subtitle")}
             </p>
           </div>
 
@@ -320,7 +322,9 @@ export default function HomePage() {
                             <p className="text-sm font-bold text-gray-900 dark:text-white leading-none mb-1">
                               {review.profiles?.name || "User"}
                             </p>
-                            <p className="text-xs text-gray-500">Reviewer</p>
+                            <p className="text-xs text-gray-500">
+                              {t("reviews.role")}
+                            </p>
                           </div>
                           <div className="ml-auto flex items-center gap-1 text-yellow-400 text-xs font-bold bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-full">
                             <IoStarSharp /> {review.rating}
@@ -339,7 +343,7 @@ export default function HomePage() {
                             {new Date(review.created_at).toLocaleDateString()}
                           </span>
                           <span className="text-sm font-semibold text-brand-600 hover:underline flex items-center gap-1">
-                            Baca <IoArrowForward size={14} />
+                            {t("reviews.read")} <IoArrowForward size={14} />
                           </span>
                         </div>
                       </div>

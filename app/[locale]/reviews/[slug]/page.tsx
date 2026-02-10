@@ -5,8 +5,9 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
-import { id as idLocale } from "date-fns/locale";
+import { id as idLocale, enUS as enLocale } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 import {
   IoStar,
@@ -60,7 +61,11 @@ interface ReviewDetail {
 }
 
 export default function ReviewDetailPage() {
+  const t = useTranslations("reviewDetail");
+  const tc = useTranslations("common");
   const params = useParams();
+  const locale = useParams().locale as string;
+  const currentLocale = locale === "id" ? idLocale : enLocale;
   const { data: session } = useSession(); // Auth check
   const router = useRouter(); // For redirecting to login
   const [review, setReview] = useState<ReviewDetail | null>(null);
@@ -151,7 +156,7 @@ export default function ReviewDetailPage() {
     const title = review?.title || "Literaku Review";
 
     const { value: result } = await Swal.fire({
-      title: "Bagikan Review Ini",
+      title: t("share.title"),
       html: `
         <div class="flex flex-col gap-3">
           <a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-[#25D366]/10 text-[#25D366] font-bold hover:bg-[#25D366]/20 transition">
@@ -164,7 +169,7 @@ export default function ReviewDetailPage() {
              X (Twitter)
           </a>
           <button id="copyLinkBtn" class="flex items-center gap-3 p-3 rounded-lg bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition text-left">
-             Salin Link
+             ${t("share.copyLink")}
           </button>
         </div>
       `,
@@ -177,7 +182,7 @@ export default function ReviewDetailPage() {
             navigator.clipboard.writeText(url);
             Swal.fire({
               icon: "success",
-              title: "Link Disalin!",
+              title: t("share.success"),
               timer: 1500,
               showConfirmButton: false,
             });
@@ -191,11 +196,11 @@ export default function ReviewDetailPage() {
     if (!session) {
       Swal.fire({
         icon: "info",
-        title: "Login Diperlukan",
-        text: "Silakan login terlebih dahulu untuk menyukai review ini.",
+        title: t("auth.title"),
+        text: t("auth.likeText"),
         showCancelButton: true,
-        confirmButtonText: "Login",
-        cancelButtonText: "Batal",
+        confirmButtonText: t("auth.login"),
+        cancelButtonText: t("auth.cancel"),
       }).then((result) => {
         if (result.isConfirmed) {
           router.push("/auth/login");
@@ -261,7 +266,7 @@ export default function ReviewDetailPage() {
 
       Swal.fire({
         icon: "success",
-        title: "Komentar Terkirim!",
+        title: tc("success"), // Use common success
         timer: 1500,
         showConfirmButton: false,
       });
@@ -288,7 +293,7 @@ export default function ReviewDetailPage() {
       setReview(data.review);
     } catch (err) {
       console.error("Error fetching review:", err);
-      setError("Gagal memuat review.");
+      setError(tc("errorFetching"));
     } finally {
       setIsLoading(false);
     }
@@ -308,7 +313,7 @@ export default function ReviewDetailPage() {
           href="/reviews"
           className="text-brand-600 hover:underline flex items-center gap-2"
         >
-          <IoArrowBack /> Kembali ke Daftar Review
+          <IoArrowBack /> {t("hero.backToList")}
         </Link>
       </div>
     );
@@ -379,8 +384,10 @@ export default function ReviewDetailPage() {
                 {review.title}
               </h1>
               <h2 className="text-xl text-gray-200 font-medium mb-6 drop-shadow-md">
-                Review buku &quot;{review.book_title}&quot; karya{" "}
-                {review.book_author}
+                {t("hero.subtitle", {
+                  title: review.book_title,
+                  author: review.book_author,
+                })}
               </h2>
 
               {/* Reviewer Info */}
@@ -400,7 +407,7 @@ export default function ReviewDetailPage() {
                   </div>
                   <div className="flex flex-col items-start justify-center">
                     <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider font-semibold">
-                      Direview oleh
+                      {t("hero.reviewedBy")}
                     </p>
                     <p className="text-sm md:text-base font-bold text-gray-900 dark:text-white drop-shadow-none dark:drop-shadow-md">
                       {review.profiles?.name || "Anonymous"}
@@ -412,7 +419,7 @@ export default function ReviewDetailPage() {
                   <span className="flex items-center gap-1 font-medium">
                     <IoCalendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     {format(new Date(review.created_at), "d MMM yyyy", {
-                      locale: idLocale,
+                      locale: currentLocale,
                     })}
                   </span>
                 </div>
@@ -450,25 +457,24 @@ export default function ReviewDetailPage() {
                   <div className="text-center p-6 max-w-md">
                     <IoLockClosed className="w-12 h-12 text-brand-500 mx-auto mb-4" />
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      Baca Selengkapnya?
+                      {t("loginWall.title")}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-6">
-                      Buka akses penuh ke ulasan ini dan ribuan konten menarik
-                      lainnya dengan masuk ke akun Anda.
+                      {t("loginWall.description")}
                     </p>
                     <button
                       onClick={() => router.push("/auth/login")}
                       className="px-8 py-3 bg-brand-600 text-white rounded-full font-bold text-lg hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 hover:-translate-y-1"
                     >
-                      Masuk ke Akun
+                      {t("loginWall.cta")}
                     </button>
                     <p className="mt-4 text-sm text-gray-500">
-                      Belum punya akun?{" "}
+                      {t("loginWall.noAccount")}{" "}
                       <Link
                         href="/auth/register"
                         className="text-brand-600 hover:underline font-medium"
                       >
-                        Daftar Gratis
+                        {t("loginWall.register")}
                       </Link>
                     </p>
                   </div>
@@ -492,12 +498,14 @@ export default function ReviewDetailPage() {
                     />
                   </div>
                   <span className="font-semibold">
-                    {review.review_likes?.length || 0} Suka
+                    {review.review_likes?.length || 0} {t("engagement.likes")}
                   </span>
                 </button>
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                   <IoEye className="w-5 h-5" />
-                  <span>{review.views} Views</span>
+                  <span>
+                    {review.views} {t("engagement.views")}
+                  </span>
                 </div>
               </div>
 
@@ -506,7 +514,7 @@ export default function ReviewDetailPage() {
                 className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold hover:underline"
               >
                 <IoShareSocial className="w-5 h-5" />
-                Bagikan
+                {t("engagement.share")}
               </button>
             </div>
           </motion.div>
@@ -521,7 +529,7 @@ export default function ReviewDetailPage() {
             {/* Author Profile Card */}
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-800 sticky top-24">
               <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
-                Tentang Reviewer
+                {t("sidebar.aboutReviewer")}
               </h3>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden relative">
@@ -544,7 +552,7 @@ export default function ReviewDetailPage() {
                     {review.profiles.name}
                   </Link>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Bergabung sejak 2024
+                    {t("sidebar.joined")} 2024
                   </p>
                 </div>
               </div>
@@ -554,7 +562,7 @@ export default function ReviewDetailPage() {
                 </p>
               )}
               <button className="w-full py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors">
-                Lihat Profil
+                {t("sidebar.viewProfile")}
               </button>
             </div>
           </motion.aside>
@@ -570,7 +578,7 @@ export default function ReviewDetailPage() {
           <div className="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-8 md:p-12 border border-gray-100 dark:border-gray-800">
             <h3 className="text-3xl font-bold mb-10 flex items-center gap-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-6">
               <IoChatbubble className="text-brand-500" />
-              Diskusi & Komentar{" "}
+              {t("comments.title")}{" "}
               <span className="text-lg font-normal text-gray-500">
                 (
                 {(review?.review_comments?.length || 0) +
@@ -612,7 +620,7 @@ export default function ReviewDetailPage() {
                         </span>
                         <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full font-medium">
                           {format(new Date(comment.created_at), "d MMMM yyyy", {
-                            locale: idLocale,
+                            locale: currentLocale,
                           })}
                         </span>
                       </div>
@@ -625,7 +633,7 @@ export default function ReviewDetailPage() {
               ) : (
                 <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
                   <p className="text-gray-500 italic text-lg">
-                    Belum ada komentar. Jadilah yang pertama!
+                    {t("comments.empty")}
                   </p>
                 </div>
               )}
@@ -638,17 +646,17 @@ export default function ReviewDetailPage() {
                   <div className="hidden md:block w-14 h-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex-shrink-0 shadow-lg" />
                   <div className="flex-1 space-y-4">
                     <label className="font-bold text-xl text-gray-800 dark:text-white block">
-                      Tulis Tanggapan Anda
+                      {t("comments.form.title")}
                     </label>
                     <div className="relative">
                       <textarea
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Bagikan pendapat cerdas Anda tentang buku ini..."
+                        placeholder={t("comments.form.placeholder")}
                         className="w-full p-5 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-950 focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all resize-none min-h-[150px] shadow-inner text-gray-900 dark:text-white text-lg placeholder:text-gray-400"
                       />
                       <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
-                        Markdown Supported
+                        {t("comments.form.markdown")}
                       </div>
                     </div>
                     <div className="flex justify-end">
@@ -657,7 +665,8 @@ export default function ReviewDetailPage() {
                         disabled={!commentText.trim()}
                         className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-brand-500/30 disabled:opacity-70 disabled:hover:scale-100"
                       >
-                        <IoSend className="w-5 h-5" /> Kirim Komentar
+                        <IoSend className="w-5 h-5" />{" "}
+                        {t("comments.form.submit")}
                       </button>
                     </div>
                   </div>
@@ -667,17 +676,16 @@ export default function ReviewDetailPage() {
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-purple-500" />
                   <IoLockClosed className="w-12 h-12 mx-auto mb-4 text-gray-400 group-hover:text-white transition-colors" />
                   <h4 className="text-2xl font-bold mb-3">
-                    Ingin ikut berdiskusi?
+                    {t("comments.guest.title")}
                   </h4>
                   <p className="text-gray-300 mb-8 max-w-lg mx-auto text-lg">
-                    Bergabunglah dengan komunitas Literaku untuk memberikan
-                    kritik, saran, dan bertukar pikiran.
+                    {t("comments.guest.description")}
                   </p>
                   <button
                     onClick={() => router.push("/login")}
                     className="px-8 py-3 bg-white text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
                   >
-                    Masuk ke Akun
+                    {t("comments.guest.cta")}
                   </button>
                 </div>
               )}

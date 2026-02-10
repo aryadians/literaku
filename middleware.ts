@@ -1,12 +1,7 @@
 import createMiddleware from "next-intl/middleware";
-// Middleware for handling i18n routing
-import { locales, defaultLocale } from "./i18n";
+import { routing } from "./lib/i18n/navigation";
 
-export default createMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: "as-needed",
-});
+export default createMiddleware(routing);
 
 export const config = {
   // Match all pathnames except for:

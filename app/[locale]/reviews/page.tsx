@@ -40,6 +40,8 @@ interface Category {
 }
 
 function ReviewsContent() {
+  const t = useTranslations("reviewList");
+  const tc = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
@@ -85,7 +87,7 @@ function ReviewsContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 flex items-center justify-center">
-        <p className="text-red-500 dark:text-red-400">Gagal memuat review.</p>
+        <p className="text-red-500 dark:text-red-400">{tc("errorFetching")}</p>
       </div>
     );
   }
@@ -98,18 +100,18 @@ function ReviewsContent() {
           <div>
             <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
               {categoryParam
-                ? `Kategori: ${categories.find((c) => c.slug === categoryParam)?.name || categoryParam}`
-                : "Semua Review"}
+                ? `${t("filter.sortBy")}: ${categories.find((c) => c.slug === categoryParam)?.name || categoryParam}`
+                : t("title")}
             </h1>
             <p className="text-gray-500 dark:text-gray-400">
-              {reviews.length} review ditemukan
+              {reviews.length} {t("countFound")}
             </p>
           </div>
 
           <div className="flex items-center gap-4">
             <Link href="/reviews/create">
               <Button size="md" className="gap-2 hidden md:inline-flex">
-                <IoAdd className="text-xl" /> Tulis Review
+                <IoAdd className="text-xl" /> {t("cta")}
               </Button>
               {/* Mobile Icon Button */}
               <Button size="md" className="md:hidden px-3 aspect-square">
@@ -126,7 +128,7 @@ function ReviewsContent() {
                   onChange={(e) => updateFilter(e.target.value || null)}
                   value={categoryParam || ""}
                 >
-                  <option value="">Semua Kategori</option>
+                  <option value="">{t("filter.all")}</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.slug}>
                       {c.name}
@@ -147,9 +149,9 @@ function ReviewsContent() {
                   }}
                   defaultValue={searchParams.get("sort") || "newest"}
                 >
-                  <option value="newest">Terbaru</option>
-                  <option value="popular">Terpopuler</option>
-                  <option value="oldest">Terlama</option>
+                  <option value="newest">{t("filter.newest")}</option>
+                  <option value="popular">{t("filter.popular")}</option>
+                  <option value="oldest">{t("filter.oldest")}</option>
                 </select>
                 <svg
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -171,9 +173,9 @@ function ReviewsContent() {
 
         {/* Search Feedback */}
         {search && (
-          <div className="mb-8 flex items-center gap-2 bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 inline-flex">
+          <div className="mb-8 items-center gap-2 bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 inline-flex">
             <span>
-              Hasil pencarian untuk: <strong>&quot;{search}&quot;</strong>
+              {t("search.results")} <strong>&quot;{search}&quot;</strong>
             </span>
             <button
               onClick={clearSearch}
@@ -191,17 +193,17 @@ function ReviewsContent() {
           <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
-              Tidak ada hasil yang ditemukan
+              {t("empty.title")}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              Coba kata kunci lain atau ubah filter kategori.
+              {t("empty.description")}
             </p>
             {(search || categoryParam) && (
               <button
                 onClick={() => router.push("/reviews")}
                 className="px-6 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Reset Filter
+                {t("filter.reset")}
               </button>
             )}
           </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/lib/i18n/navigation";
+import { useLocale } from "next-intl";
 import { IoLanguageSharp, IoCheckmark } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,24 +15,11 @@ export function LanguageSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-
-  // Safer logic for path manipulation with "as-needed" locale prefix
-  const isEnglish = pathname.startsWith("/en");
-  const currentLocale = isEnglish ? "en" : "id";
+  const currentLocale = useLocale();
 
   const switchLanguage = (newLocale: string) => {
-    let newPath = pathname;
-
-    // If switching to ID (default), remove '/en' prefix
-    if (newLocale === "id" && isEnglish) {
-      newPath = pathname.replace(/^\/en/, "") || "/";
-    }
-    // If switching to EN, add '/en' prefix (if not already there)
-    else if (newLocale === "en" && !isEnglish) {
-      newPath = `/en${pathname === "/" ? "" : pathname}`;
-    }
-
-    router.push(newPath);
+    // next-intl's localized useRouter handles the localePrefix automatically
+    router.replace(pathname, { locale: newLocale });
     setIsOpen(false);
   };
 

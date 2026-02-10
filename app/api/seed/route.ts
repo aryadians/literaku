@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const dummyBooksData = [
@@ -92,13 +92,18 @@ const SAMPLE_PDF =
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
+    // USE SERVICE ROLE KEY TO BYPASS RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
 
-    // 1. Get User (Admin)
+    // 1. Get User (Admin) - Optional confirmation, or just pick first user
     const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    let userId = authUser?.id;
+      data: { users },
+    } = await supabase.auth.admin.listUsers(); // Admin API
+
+    let userId = users?.[0]?.id;
 
     if (!userId) {
       // Fallback to first profile if running without auth context (e.g. from curl)
@@ -112,10 +117,34 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "No users found" }, { status: 400 });
     }
 
-    // 2. Get Categories Map
-    const { data: categories } = await supabase
+    // 2. Get or Create Categories
+    let { data: categories } = await supabase
       .from("categories")
       .select("id, name");
+
+    if (!categories || categories.length === 0) {
+      const defaultCategories = [
+        "Fiction",
+        "Non-Fiction",
+        "Business",
+        "Self-Help",
+        "History",
+        "Science",
+        "Biography",
+        "Technology",
+      ];
+      const { data: newCats, error: catError } = await supabase
+        .from("categories")
+        .insert(
+          defaultCategories.map((name) => ({ name, slug: name.toLowerCase() })),
+        )
+        .select();
+
+      if (catError)
+        throw new Error("Failed to seed categories: " + catError.message);
+      categories = newCats;
+    }
+
     const catMap: Record<string, string> = {};
     categories?.forEach((c) => {
       catMap[c.name] = c.id;

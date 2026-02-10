@@ -261,13 +261,15 @@ export default function ProfilePage() {
 
                 {stats.booksRead > 5 && (
                   <div className="pt-2 text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs w-full"
-                    >
-                      Lihat Semua Riwayat
-                    </Button>
+                    <a href="/library">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs w-full"
+                      >
+                        Lihat Semua Riwayat
+                      </Button>
+                    </a>
                   </div>
                 )}
               </div>

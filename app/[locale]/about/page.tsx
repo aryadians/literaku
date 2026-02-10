@@ -6,32 +6,29 @@ import { motion } from "framer-motion";
 import { IoLibrary, IoPeople, IoReader, IoRocket } from "react-icons/io5";
 
 export default function AboutPage() {
-  const t = useTranslations("common");
+  const t = useTranslations("about");
+  const tc = useTranslations("common");
 
   const features = [
     {
       icon: <IoLibrary className="w-8 h-8 text-brand-500" />,
-      title: "Perpustakaan Digital",
-      description:
-        "Akses ribuan buku digital dari berbagai genre dan kategori secara gratis dan mudah.",
+      title: t("features.items.digitalLibrary.title"),
+      description: t("features.items.digitalLibrary.description"),
     },
     {
       icon: <IoReader className="w-8 h-8 text-brand-500" />,
-      title: "Review & Diskusi",
-      description:
-        "Bagikan ulasan Anda, baca pandangan orang lain, dan berdiskusi tentang buku favorit.",
+      title: t("features.items.reviewDiscussion.title"),
+      description: t("features.items.reviewDiscussion.description"),
     },
     {
       icon: <IoPeople className="w-8 h-8 text-brand-500" />,
-      title: "Komunitas Literasi",
-      description:
-        "Terhubung dengan sesama pecinta buku, penulis, dan pegiat literasi di seluruh Indonesia.",
+      title: t("features.items.community.title"),
+      description: t("features.items.community.description"),
     },
     {
       icon: <IoRocket className="w-8 h-8 text-brand-500" />,
-      title: "Jejak Bacaan",
-      description:
-        "Pantau progres membaca Anda dan bangun portofolio literasi pribadi Anda.",
+      title: t("features.items.readingHistory.title"),
+      description: t("features.items.readingHistory.description"),
     },
   ];
 
@@ -46,7 +43,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-bold mb-6"
           >
-            Tentang {t("appName")}
+            {t("title")} {tc("appName")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -82,21 +79,14 @@ export default function AboutPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-                Misi Kami
+                {t("mission.title")}
               </h2>
               <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
                 Literaku hadir dengan visi sederhana namun ambisius:
-                <strong>
-                  {" "}
-                  Mendemokratisasi akses literasi dan membangun budaya membaca
-                  yang kuat di Indonesia.
-                </strong>
+                <strong> {t("mission.subtitle")}</strong>
               </p>
               <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-                Kami percaya bahwa buku adalah jendela dunia, dan setiap orang
-                berhak mendapatkan akses ke pengetahuan dan hiburan yang
-                berkualitas. Melalui teknologi, kami menghubungkan pembaca,
-                penulis, dan buku dalam satu ekosistem yang inklusif.
+                {t("mission.description")}
               </p>
             </motion.div>
           </div>
@@ -108,10 +98,10 @@ export default function AboutPage() {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-              Mengapa Memilih Literaku?
+              {t("features.title")}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Platform lengkap untuk menunjang perjalanan literasi Anda.
+              {t("features.subtitle")}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">

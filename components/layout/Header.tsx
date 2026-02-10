@@ -15,6 +15,7 @@ import {
   IoLogOut,
   IoGrid,
   IoCreate,
+  IoBrush,
   IoChevronDown,
   IoSearch,
 } from "react-icons/io5";
@@ -33,9 +34,10 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
-    { href: "/library", label: "Perpustakaan" }, // Using hardcoded label since translations might be missing
+    { href: "/library", label: t("nav.library") },
     { href: "/reviews", label: t("nav.reviews") },
     { href: "/categories", label: t("nav.categories") },
+    { href: "/canvas", label: t("nav.canvas") },
     { href: "/about", label: t("nav.about") },
   ];
 
@@ -103,7 +105,7 @@ export function Header() {
             <div className="relative group">
               <input
                 type="text"
-                placeholder="Cari buku..."
+                placeholder={t("common.searchPlaceholder")}
                 className="w-32 focus:w-64 transition-all duration-300 pl-9 pr-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-950 border focus:border-brand-500 rounded-full outline-none placeholder:text-gray-400 dark:text-white"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -182,27 +184,35 @@ export function Header() {
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <IoPerson className="w-4 h-4" /> Profile
+                            <IoPerson className="w-4 h-4" /> {t("nav.profile")}
                           </Link>
                           <Link
                             href="/dashboard"
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <IoGrid className="w-4 h-4" /> Dashboard
+                            <IoGrid className="w-4 h-4" /> {t("nav.dashboard")}
                           </Link>
                           <Link
                             href="/reviews/create"
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <IoCreate className="w-4 h-4" /> Tulis Review
+                            <IoCreate className="w-4 h-4" />{" "}
+                            {t("nav.writeReview")}
+                          </Link>
+                          <Link
+                            href="/canvas"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <IoBrush className="w-4 h-4" /> {t("nav.canvas")}
                           </Link>
                           <button
                             onClick={() => signOut()}
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-2"
                           >
-                            <IoLogOut className="w-4 h-4" /> Keluar
+                            <IoLogOut className="w-4 h-4" /> {t("nav.logout")}
                           </button>
                         </div>
                       </motion.div>
@@ -294,27 +304,27 @@ export function Header() {
                         onClick={() => setIsMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
-                        <IoPerson /> Profile
+                        <IoPerson /> {t("nav.profile")}
                       </Link>
                       <Link
                         href="/dashboard"
                         onClick={() => setIsMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
-                        <IoGrid /> Dashboard
+                        <IoGrid /> {t("nav.dashboard")}
                       </Link>
                       <Link
                         href="/reviews/create"
                         onClick={() => setIsMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
-                        <IoCreate /> Tulis Review
+                        <IoCreate /> {t("nav.writeReview")}
                       </Link>
                       <button
                         onClick={() => signOut()}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
-                        <IoLogOut /> Keluar
+                        <IoLogOut /> {t("nav.logout")}
                       </button>
                     </>
                   ) : (
