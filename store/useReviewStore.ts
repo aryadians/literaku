@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { BookReview } from "@/lib/supabase";
+import { BookReview } from "@/types/database";
 
 interface ReviewFilter {
   category?: string;

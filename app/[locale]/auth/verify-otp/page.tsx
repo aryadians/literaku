@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IoShieldCheckmark, IoMailOpen } from "react-icons/io5";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Swal from "sweetalert2";
 
 export default function VerifyOtpPage() {

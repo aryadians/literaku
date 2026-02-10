@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { IoCamera, IoClose } from "react-icons/io5";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+import { Profile } from "@/types/database";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
 

@@ -10,9 +10,11 @@ import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import useSWR from "swr";
-import { fetcher } from "@/lib/fetcher";
+import { fetcher } from "@/lib/api/fetcher";
 import { Button } from "@/components/ui/Button";
 import { IoAdd } from "react-icons/io5";
+
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 
 // Define Review Interface
 interface Review {
@@ -49,7 +51,7 @@ function ReviewsContent() {
   const sortParam = searchParams.get("sort") || "newest";
 
   // Construct API URL key for SWR
-  let url = `/api/reviews?limit=12&sort=${sortParam}`;
+  let url = `/api/reviews?limit=${DEFAULT_PAGE_SIZE}&sort=${sortParam}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (categoryParam) url += `&category=${encodeURIComponent(categoryParam)}`;
 

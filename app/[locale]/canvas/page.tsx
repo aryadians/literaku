@@ -11,7 +11,7 @@ import {
   IoTime,
   IoChevronBack,
 } from "react-icons/io5";
-import CanvasEditor from "@/components/canvas/CanvasEditor";
+import CanvasEditor from "@/components/features/canvas/CanvasEditor";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import useSWR from "swr";

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import ReaderInterface from "@/components/reader/ReaderInterface";
+import ReaderInterface from "@/components/features/reader/ReaderInterface";
 
 export const metadata = {
   title: "Baca Buku - Literaku",

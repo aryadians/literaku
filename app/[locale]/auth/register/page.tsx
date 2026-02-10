@@ -16,7 +16,7 @@ import {
   IoLockClosed,
   IoPerson,
 } from "react-icons/io5";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Swal from "sweetalert2";
 
 export default function RegisterPage() {
