@@ -16,6 +16,8 @@ export default function AdminReviewsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const LIMIT = 10;
 
+  const supabase = createClient();
+
   useEffect(() => {
     fetchReviews();
   }, [page, search]);

@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -6,15 +9,13 @@ export async function POST(
   props: { params: Promise<{ slug: string }> },
 ) {
   const params = await props.params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supabase = createAdminClient();
   const slug = params.slug;
 
   // 1. Get review ID from slug
@@ -29,7 +30,7 @@ export async function POST(
   }
 
   const reviewId = review.id;
-  const userId = user.id;
+  const userId = session.user.id;
 
   // 2. Check if already liked
   const { data: existingLike, error: likeError } = await supabase

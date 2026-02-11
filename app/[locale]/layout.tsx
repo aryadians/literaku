@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { inter, merriweather } from "@/lib/fonts";
+// import { inter, merriweather } from "@/lib/fonts";
 import "../globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -36,7 +36,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${inter.variable} ${merriweather.variable} scroll-smooth`}
+      className={`scroll-smooth`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

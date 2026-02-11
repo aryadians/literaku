@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -7,15 +10,13 @@ export async function POST(
 ) {
   const params = await props.params;
   const slug = params.slug;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supabase = createAdminClient();
   const body = await request.json();
   const { content } = body;
 
@@ -39,7 +40,7 @@ export async function POST(
     .from("comments")
     .insert({
       review_id: review.id,
-      user_id: user.id,
+      user_id: session.user.id,
       content: content.trim(),
     })
     .select(
@@ -49,7 +50,7 @@ export async function POST(
       created_at,
       user_id,
       profiles (
-        name,
+        full_name,
         avatar_url
       )
     `,

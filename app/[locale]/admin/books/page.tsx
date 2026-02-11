@@ -25,6 +25,7 @@ export default function AdminBooksPage() {
   }, [page, search]);
 
   const fetchBooks = async () => {
+    const supabase = createClient();
     setLoading(true);
     try {
       let query = supabase.from("books").select(
@@ -60,6 +61,7 @@ export default function AdminBooksPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
+    const supabase = createClient();
     const result = await Swal.fire({
       title: "Hapus Buku?",
       text: `Anda yakin ingin menghapus "${title}"? Tindakan ini tidak dapat dibatalkan.`,

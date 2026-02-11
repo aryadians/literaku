@@ -17,6 +17,8 @@ export default function VerifyOtpPage() {
   const [email, setEmail] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const supabase = createClient();
+
   useEffect(() => {
     // Get email from localStorage or query param
     const storedEmail = localStorage.getItem("registerEmail");

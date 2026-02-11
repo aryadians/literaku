@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,6 +17,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        const supabase = await createClient();
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -50,6 +52,35 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
       }
       return token;
+    },
+    async signIn({ user, account, profile }) {
+      if (!user.id || !user.email) return true;
+
+      const supabase = createAdminClient();
+      
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      if (!existingProfile) {
+        // Create profile
+        const username = user.name?.toLowerCase().replace(/\s+/g, "_") || user.email.split("@")[0];
+        
+        await supabase.from("profiles").insert([
+          {
+            id: user.id,
+            username: username,
+            full_name: user.name,
+            avatar_url: user.image,
+            updated_at: new Date().toISOString(),
+          },
+        ]);
+      }
+
+      return true;
     },
   },
   pages: {

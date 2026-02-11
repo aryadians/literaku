@@ -22,8 +22,18 @@ interface Block {
   content: string;
 }
 
+interface Note {
+  id: string;
+  title: string;
+  content: Block[];
+  is_favorite: boolean;
+  updated_at: string;
+  user_id: string;
+}
+
 import { createClient } from "@/lib/supabase/client";
 import { useSession } from "next-auth/react";
+
 
 export default function CanvasEditor({
   note,
@@ -39,6 +49,8 @@ export default function CanvasEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isFavorite, setIsFavorite] = useState(note.is_favorite);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  const supabase = createClient(); // Only one initialization here
 
   const saveNote = useCallback(
     async (auto = false) => {
@@ -99,7 +111,7 @@ export default function CanvasEditor({
     if (!file) return;
 
     setIsSaving(true);
-    const supabase = createClient();
+
     try {
       // Get the correct UUID from profiles first
       const {

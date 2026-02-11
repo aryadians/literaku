@@ -34,6 +34,7 @@ export default function AdminEditBookPage() {
   // Check Admin & Fetch Data
   useEffect(() => {
     async function init() {
+      const supabase = createClient();
       if (!session?.user?.email) return;
 
       // 1. Check Admin Role
@@ -85,6 +86,7 @@ export default function AdminEditBookPage() {
   }, [session, params.id, router]);
 
   const handleUpdate = async (e: React.FormEvent) => {
+    const supabase = createClient();
     e.preventDefault();
     setIsSaving(true);
 

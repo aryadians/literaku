@@ -33,6 +33,8 @@ export default function ProfilePage() {
     website: "",
   });
 
+  const supabase = createClient();
+
   useEffect(() => {
     async function fetchProfile() {
       if (!session?.user?.email) return;

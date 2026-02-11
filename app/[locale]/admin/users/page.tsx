@@ -28,6 +28,7 @@ export default function AdminUsersPage() {
   }, [page, search]);
 
   const fetchUsers = async () => {
+    const supabase = createClient();
     setLoading(true);
     try {
       let query = supabase.from("profiles").select("*", { count: "exact" });
@@ -63,6 +64,7 @@ export default function AdminUsersPage() {
     currentRole: string,
     name: string,
   ) => {
+    const supabase = createClient();
     const newRole = currentRole === "admin" ? "user" : "admin";
     const action = newRole === "admin" ? "Jadikan Admin" : "Hapus Admin";
 
@@ -104,6 +106,7 @@ export default function AdminUsersPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
+    const supabase = createClient();
     // Warning: This only deletes the profile.
     const result = await Swal.fire({
       title: "Hapus User?",

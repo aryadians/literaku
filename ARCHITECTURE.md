@@ -4,7 +4,7 @@ This document outlines the refactored architecture of the Literaku project, focu
 
 ## 1. Directory Structure
 
-The project follows a feature-first and domain-driven directory structure within the `app` and `components` directories, complemented by dedicated `lib` for utilities, `store` for state management, and `types` for shared TypeScript definitions.
+The project follows a feature-first and domain-driven directory structure within the `app` and `components` directories, complemented by dedicated `lib` for utilities, `store` for state management, `types` for shared TypeScript definitions, and `database` for SQL schema and migrations.
 
 ```
 literaku/
@@ -36,7 +36,6 @@ literaku/
 ├── lib/                      # Utility and helper functions
 │   ├── api/                  # API client configurations (Axios, custom fetchers)
 │   ├── supabase/             # Supabase client instances (client, server, admin)
-│   ├── i18n/                 # Internationalization utilities
 │   ├── fonts.ts              # Font definitions
 │   ├── utils.ts              # General utility functions
 │   └── constants.ts          # Application-wide constants
@@ -46,7 +45,12 @@ literaku/
 ├── types/                    # Global TypeScript type definitions
 │   ├── database.ts           # Supabase database interfaces
 │   └── next-auth.d.ts        # NextAuth module augmentations
+├── database/                 # SQL database schema and migration files
+│   ├── schema.sql            # Main database schema definition
+│   └── migrations/           # Individual SQL migration scripts
 ├── messages/                 # Internationalization message files
+├── i18n.ts                   # Next-intl configuration file
+├── middleware.ts             # Next.js middleware with next-intl configuration
 ├── public/                   # Static assets (images, icons)
 └── ...                       # Root-level configuration, scripts, etc.
 ```
@@ -80,7 +84,6 @@ API routes are organized by resource to reflect RESTful principles and improve m
 The `lib` directory is now structured into logical sub-folders:
 -   **`lib/api`**: For all HTTP client configurations and data fetching utilities.
 -   **`lib/supabase`**: For all Supabase client implementations.
--   **`lib/i18n`**: For internationalization-related setup.
 -   **`lib/constants`**: For global application constants and configurations.
 -   **`lib/utils`**: For general-purpose helper functions that don't fit into other categories.
 
@@ -91,5 +94,11 @@ Zustand stores are kept in the `store/` directory, providing a clear location fo
 ## 8. Configuration Management
 
 Configuration files (e.g., `next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`) remain at the root for ease of access and standard project setup. Application-specific constants are now centralized in `lib/constants.ts`.
+
+## 9. Database Schema and Migrations (`database`)
+
+All SQL files, including the main schema definition and individual migration scripts, are now consolidated under the `database/` directory.
+-   **`database/schema.sql`**: Contains the full, up-to-date database schema.
+-   **`database/migrations/`**: Stores individual migration scripts (`*.sql`) used for applying incremental changes to the database.
 
 This architectural overview provides a standardized and organized foundation for further development and maintenance of the Literaku project.

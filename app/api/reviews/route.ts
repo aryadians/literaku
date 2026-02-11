@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 
 /**
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
         created_at,
         featured,
         profiles (
-          name,
+          full_name,
           avatar_url
         ),
         categories (
@@ -127,12 +130,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -155,6 +155,8 @@ export async function POST(request: NextRequest) {
       "-" +
       Date.now().toString().slice(-4);
 
+    const supabase = createAdminClient();
+
     // Insert Review
     const { data: review, error } = await supabase
       .from("book_reviews")
@@ -168,7 +170,7 @@ export async function POST(request: NextRequest) {
         excerpt: body.content.substring(0, 150) + "...",
         rating: body.rating,
         category_id: body.category_id || null, // Ensure frontend sends ID or handle logic
-        user_id: user.id,
+        user_id: session.user.id,
         published: true,
       })
       .select()

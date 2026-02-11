@@ -31,6 +31,8 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const supabase = createClient();
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 

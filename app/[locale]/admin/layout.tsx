@@ -33,6 +33,7 @@ export default function AdminLayout({
   // Check Admin Status
   useEffect(() => {
     async function checkRole() {
+      const supabase = createClient();
       if (status === "loading") return;
 
       if (!session?.user) {

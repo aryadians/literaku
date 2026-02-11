@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS profiles (
         full_name TEXT,
         avatar_url TEXT,
         website TEXT,
-        bio TEXT
+    bio TEXT
 );
 
 -- Set up Row Level Security (RLS)
@@ -124,19 +124,13 @@ CREATE TABLE IF NOT EXISTS review_likes (
 
 ALTER TABLE review_likes ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Likes are viewable by everyone" ON review_likes;
-
 CREATE POLICY "Likes are viewable by everyone" ON review_likes FOR
 SELECT USING (true);
-
-DROP POLICY IF EXISTS "Authenticated users can like reviews" ON review_likes;
 
 CREATE POLICY "Authenticated users can like reviews" ON review_likes FOR
 INSERT
 WITH
     CHECK (auth.uid () = user_id);
-
-DROP POLICY IF EXISTS "Authenticated users can unlike reviews" ON review_likes;
 
 CREATE POLICY "Authenticated users can unlike reviews" ON review_likes FOR DELETE USING (auth.uid () = user_id);
 

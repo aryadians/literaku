@@ -25,6 +25,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
+      const supabase = createClient();
       try {
         const [
           { count: booksCount },

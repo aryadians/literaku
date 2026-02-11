@@ -30,9 +30,12 @@ export default function AdminUploadPage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
+
+
   // Check Admin Status
   useEffect(() => {
     async function checkRole() {
+      const supabase = createClient();
       if (!session?.user?.email) return;
 
       const { data: profile } = await supabase
@@ -65,6 +68,7 @@ export default function AdminUploadPage() {
     }
 
     async function fetchCategories() {
+      const supabase = createClient();
       const { data } = await supabase.from("categories").select("id, name");
       if (data) setCategories(data);
     }
@@ -74,6 +78,7 @@ export default function AdminUploadPage() {
   }, [session]);
 
   const handleUpload = async (e: React.FormEvent) => {
+    const supabase = createClient();
     e.preventDefault();
     if (!pdfFile || !formData.title || !formData.author) {
       Swal.fire("Error", "Mohon lengkapi data dan file buku", "error");
