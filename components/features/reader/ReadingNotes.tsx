@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { IoClose, IoSave, IoDocumentText } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,43 +19,42 @@ export function ReadingNotes({ bookSlug, isOpen, onClose }: ReadingNotesProps) {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchNotes();
-    }
-  }, [isOpen, bookSlug]);
-
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     setIsLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     const { data } = await supabase
       .from("reading_notes")
       .select("content, updated_at")
       .eq("user_id", user.id)
       .eq("book_slug", bookSlug)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setContent(data.content || "");
       setLastSaved(new Date(data.updated_at));
     }
     setIsLoading(false);
-  };
+  }, [bookSlug, supabase]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (!content && !lastSaved) return; // Don't save empty if never saved before
+    
     setIsSaving(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setIsSaving(false);
+      return;
+    }
 
-    // Use RPC or direct upsert if RLS allows (UPSERT needs conflict target)
-    // For simplicity with standard RLS, we check existence or use upsert logic
-    // Using the upsert_note function I created in SQL is safest
     const { error } = await supabase.rpc("upsert_note", {
       p_book_slug: bookSlug,
       p_content: content,
@@ -67,15 +66,23 @@ export function ReadingNotes({ bookSlug, isOpen, onClose }: ReadingNotesProps) {
       console.error("Save error:", error);
     }
     setIsSaving(false);
-  };
+  }, [bookSlug, content, lastSaved, supabase]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotes();
+    }
+  }, [isOpen, fetchNotes]);
 
   // Auto-save every 30s
   useEffect(() => {
+    if (!isOpen || !content) return;
+    
     const interval = setInterval(() => {
-      if (content) handleSave();
+      handleSave();
     }, 30000);
     return () => clearInterval(interval);
-  }, [content]);
+  }, [content, handleSave, isOpen]);
 
   return (
     <AnimatePresence>

@@ -11,11 +11,11 @@ export async function GET(
   try {
     const supabase = await createClient();
 
-    // 1. Fetch Profile
+    // 1. Fetch Profile (Case-insensitive)
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id, full_name, username, avatar_url, bio, website, created_at")
-      .eq("username", username)
+      .ilike("username", username)
       .single();
 
     if (profileError || !profile) {
@@ -48,15 +48,47 @@ export async function GET(
       .select("*", { count: "exact", head: true })
       .eq("user_id", profile.id);
 
+    // 4. Fetch Total Likes Received on all reviews
+    const { data: reviewsData } = await supabase
+      .from("book_reviews")
+      .select("id")
+      .eq("user_id", profile.id);
+    
+    const reviewIds = reviewsData?.map(r => r.id) || [];
+    let totalLikesReceived = 0;
+    if (reviewIds.length > 0) {
+      const { count } = await supabase
+        .from("review_likes")
+        .select("*", { count: "exact", head: true })
+        .in("review_id", reviewIds);
+      totalLikesReceived = count || 0;
+    }
+
+    // 5. Fetch Comments Made by this user
+    const { count: commentsMade } = await supabase
+      .from("review_comments")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", profile.id);
+
+    // 6. Fetch Unique Categories reviewed
+    const { data: categoryData } = await supabase
+      .from("book_reviews")
+      .select("category_id")
+      .eq("user_id", profile.id);
+    const uniqueCategories = new Set(categoryData?.map(c => c.category_id)).size;
+
     return NextResponse.json({
       profile: {
         ...profile,
-        name: profile.full_name // Map full_name to name for frontend compatibility
+        name: profile.full_name || profile.username || "User"
       },
       reviews: reviews || [],
       stats: {
         booksRead: booksRead || 0,
-        reviewsCount: reviews?.length || 0
+        reviewsCount: reviews?.length || 0,
+        likesReceived: totalLikesReceived,
+        commentsMade: commentsMade || 0,
+        categoriesCount: uniqueCategories
       }
     });
   } catch (error) {
