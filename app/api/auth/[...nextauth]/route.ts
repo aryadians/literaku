@@ -31,27 +31,45 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Fetch username from profiles
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+
         return {
           id: data.user.id,
           email: data.user.email!,
           name: data.user.user_metadata?.name || data.user.email!.split("@")[0],
           image: data.user.user_metadata?.avatar_url || null,
-        };
+          username: profile?.username || null,
+        } as any;
       },
     }),
   ],
   callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.id = user.id;
+        token.username = (user as any).username;
+      }
+      
+      // Handle update trigger from useSession().update()
+      if (trigger === "update" && session) {
+        if (session.user?.name) token.name = session.user.name;
+        if (session.user?.image) token.picture = session.user.image;
+        if (session.user?.username) token.username = session.user.username;
+      }
+      
+      return token;
+    },
     async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
       }
       return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-      }
-      return token;
     },
     async signIn({ user, account, profile }) {
       if (!user.id || !user.email) return true;

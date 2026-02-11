@@ -190,6 +190,14 @@ export default function ProfilePage() {
           throw error;
         }
       } else {
+        // Update session with new name and username
+        await updateSession({ 
+          user: { 
+            ...session?.user, 
+            name: formData.fullName,
+            username: formData.username // Include username in session update
+          } 
+        });
         Swal.fire("Berhasil", "Profil berhasil diperbarui", "success");
       }
     } catch (error: any) {

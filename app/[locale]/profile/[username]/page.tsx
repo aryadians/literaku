@@ -4,7 +4,18 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { IoBook, IoPerson, IoCalendar, IoStatsChart, IoHeart, IoGlobeOutline, IoChatbubblesOutline, IoRocketOutline, IoTime } from "react-icons/io5";
+import { 
+  IoBook, 
+  IoPerson, 
+  IoCalendar, 
+  IoStatsChart, 
+  IoHeart, 
+  IoGlobeOutline, 
+  IoTime,
+  IoRocket,
+  IoExtensionPuzzle,
+  IoChevronForward
+} from "react-icons/io5";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import Link from "next/link";
@@ -65,7 +76,6 @@ export default function PublicProfilePage() {
       setIsLoading(true);
       setError("");
       
-      // Remove @ if present
       const cleanUsername = username.startsWith('%40') ? username.substring(3) : 
                             username.startsWith('@') ? username.substring(1) : username;
 
@@ -120,53 +130,55 @@ export default function PublicProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
-      {/* Dynamic Header with Gradient Overlay */}
-      <div className="relative h-80 bg-brand-600 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-gray-50 dark:to-gray-950 z-10" />
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}></div>
+      {/* Fixed Immersive Header - Removed overflow-hidden to prevent clipping */}
+      <div className="relative h-80 bg-brand-600 z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-gray-50 dark:to-gray-950 z-10" />
+        {/* Pattern overlay with absolute positioning to respect container bounds without clipping children */}
+        <div className="absolute inset-0 opacity-10 overflow-hidden z-0">
+            <div className="absolute inset-0" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}></div>
+        </div>
         
-        <div className="container-custom relative z-20 h-full flex flex-col justify-end pb-0">
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-[-64px]">
-            {/* Avatar with Ring */}
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="relative w-32 h-32 md:w-44 md:h-44 flex-shrink-0 group"
-            >
-              <div className="w-full h-full rounded-[2.5rem] overflow-hidden border-8 border-white dark:border-gray-950 shadow-2xl bg-white dark:bg-gray-800 transition-transform duration-500 group-hover:rotate-3">
-                {profile.avatar_url ? (
-                  <Image
-                    src={profile.avatar_url}
-                    alt={profile.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-brand-50 dark:bg-brand-900/20 text-brand-500 text-5xl">
-                    {profile.name[0].toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-xl shadow-lg border-2 border-white dark:border-gray-950">
-                LVL {level}
-              </div>
-            </motion.div>
-
+        <div className="container-custom relative z-20 h-full flex flex-col justify-end">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-[-80px]">
+            {/* Avatar - Forced high z-index and removed clipping parents */}
+            <div className="relative z-50">
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="p-1.5 bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-2xl"
+              >
+                <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  {profile.avatar_url ? (
+                    <Image
+                      src={profile.avatar_url}
+                      alt={profile.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-brand-50 dark:bg-brand-900/30 text-brand-500 text-5xl font-black">
+                      {profile.name[0].toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+            
             {/* User Info */}
-            <div className="flex-1 text-center md:text-left pb-4 md:pb-12">
+            <div className="flex-1 text-center md:text-left pb-4 md:pb-12 z-20">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
               >
-                <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
+                <h1 className="text-4xl md:text-5xl font-black text-white md:text-gray-900 dark:md:text-white mb-2 tracking-tight drop-shadow-lg md:drop-shadow-none">
                   {profile.name}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                  <span className="text-brand-600 dark:text-brand-400 font-bold bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-lg text-sm">
+                  <span className="text-brand-600 dark:text-brand-400 font-bold bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg text-sm border border-brand-100 dark:border-brand-800 shadow-sm">
                     @{profile.username}
                   </span>
-                  <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest">
+                  <div className="flex items-center gap-1.5 text-white md:text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest bg-black/20 md:bg-transparent px-2 py-1 md:p-0 rounded-md backdrop-blur-sm md:backdrop-blur-none">
                     <IoCalendar className="text-brand-500" />
                     Bergabung {new Date(profile.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
                   </div>
@@ -177,7 +189,7 @@ export default function PublicProfilePage() {
         </div>
       </div>
 
-      <div className="container-custom pt-24 mt-4">
+      <div className="container-custom pt-32 md:pt-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Side: Stats & About */}
           <div className="lg:col-span-4 space-y-8">
@@ -185,12 +197,12 @@ export default function PublicProfilePage() {
             <Card className="p-8 border-none bg-white dark:bg-gray-900 shadow-xl rounded-[2rem] overflow-hidden relative">
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-50 dark:bg-brand-900/20 rounded-full blur-3xl" />
               
-              <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
-                <IoPerson className="text-brand-500" /> Tentang Penulis
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
+                <IoPerson className="text-brand-500" /> Profil Penulis
               </h3>
               
               {profile.bio ? (
-                <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed italic">
+                <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed italic font-medium">
                   &quot;{profile.bio}&quot;
                 </p>
               ) : (
@@ -211,11 +223,11 @@ export default function PublicProfilePage() {
               )}
 
               <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400">
-                  <span>Progres Level</span>
-                  <span>{xp} / {level * 100} XP</span>
+                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                  <span>Level {level}</span>
+                  <span>{xp} XP</span>
                 </div>
-                <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }} 
                     animate={{ width: `${progress}%` }} 
@@ -225,11 +237,11 @@ export default function PublicProfilePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-8">
-                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl text-center">
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl text-center border border-transparent hover:border-brand-100 dark:hover:border-brand-900/30 transition-colors">
                   <p className="text-2xl font-black text-gray-900 dark:text-white">{stats.reviewsCount}</p>
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Review</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl text-center">
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl text-center border border-transparent hover:border-brand-100 dark:hover:border-brand-900/30 transition-colors">
                   <p className="text-2xl font-black text-gray-900 dark:text-white">{stats.likesReceived}</p>
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Likes</p>
                 </div>
@@ -238,17 +250,22 @@ export default function PublicProfilePage() {
 
             {/* Badges Preview */}
             <Card className="p-8 border-none bg-white dark:bg-gray-900 shadow-xl rounded-[2rem]">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
-                <IoRocketOutline className="text-brand-500" /> Pencapaian
-              </h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
+                  <IoExtensionPuzzle className="text-brand-500" /> Lencana Koleksi
+                </h3>
+                <span className="text-[10px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-full">
+                  {earnedBadges.filter(b => b.earned).length} Didapat
+                </span>
+              </div>
               <div className="grid grid-cols-4 gap-3">
                 {earnedBadges.map((badge) => (
                   <div 
                     key={badge.id} 
-                    className={`aspect-square rounded-xl flex items-center justify-center text-xl transition-all duration-300 ${
+                    className={`aspect-square rounded-xl flex items-center justify-center text-xl transition-all duration-500 ${
                       badge.earned 
-                        ? "bg-brand-50 dark:bg-brand-900/30 text-brand-600 shadow-sm border border-brand-100 dark:border-brand-800" 
-                        : "bg-gray-50 dark:bg-gray-800/50 text-gray-300 dark:text-gray-700 border border-transparent opacity-50 grayscale"
+                        ? "bg-brand-50 dark:bg-brand-900/30 text-brand-600 shadow-sm border border-brand-100 dark:border-brand-800 scale-100" 
+                        : "bg-gray-50 dark:bg-gray-800/50 text-gray-300 dark:text-gray-700 border border-transparent opacity-30 grayscale scale-95"
                     }`}
                     title={`${badge.label}: ${badge.desc}`}
                   >
@@ -257,7 +274,7 @@ export default function PublicProfilePage() {
                 ))}
               </div>
               <p className="text-[9px] text-gray-400 mt-6 text-center italic font-medium">
-                Koleksi lencana mencerminkan kontribusi penulis.
+                Lencana ini mencerminkan dedikasi {profile.name} di komunitas.
               </p>
             </Card>
           </div>
@@ -266,12 +283,14 @@ export default function PublicProfilePage() {
           <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 shadow-sm">
                   <IoBook />
                 </div>
                 Daftar Review
               </h2>
-              <span className="text-sm font-bold text-gray-400">{reviews.length} Karya</span>
+              <div className="bg-white dark:bg-gray-900 px-4 py-1.5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm text-xs font-black text-gray-400 uppercase tracking-widest">
+                {reviews.length} KARYA
+              </div>
             </div>
 
             {reviews.length > 0 ? (
@@ -286,7 +305,7 @@ export default function PublicProfilePage() {
                   >
                     <Link href={`/reviews/${review.slug}`} className="group block h-full">
                       <Card className="h-full border-none bg-white dark:bg-gray-900 shadow-lg hover:shadow-2xl transition-all duration-500 rounded-[2rem] overflow-hidden flex flex-col group-hover:-translate-y-2">
-                        <div className="relative h-48 bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div className="relative h-52 bg-gray-100 dark:bg-gray-800 overflow-hidden">
                           {review.book_cover_url ? (
                             <Image
                               src={review.book_cover_url}
@@ -299,31 +318,32 @@ export default function PublicProfilePage() {
                               <IoBook size={48} />
                             </div>
                           )}
-                          <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                          <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm border border-white/50 dark:border-gray-800">
                             {review.categories?.name}
                           </div>
-                          <div className="absolute bottom-4 right-4 bg-yellow-400 text-gray-900 px-2 py-1 rounded-lg text-xs font-black shadow-lg flex items-center gap-1">
+                          <div className="absolute bottom-4 right-4 bg-yellow-400 text-gray-900 px-2.5 py-1 rounded-lg text-xs font-black shadow-lg flex items-center gap-1">
                             <IoHeart /> {review.rating}/5
                           </div>
                         </div>
                         
-                        <div className="p-6 flex-1 flex flex-col">
-                          <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-brand-600 transition-colors">
+                        <div className="p-7 flex-1 flex flex-col">
+                          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 line-clamp-2 leading-tight group-hover:text-brand-600 transition-colors">
                             {review.title}
                           </h3>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-bold truncate">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-bold flex items-center gap-1.5 uppercase tracking-tighter">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
                             Buku: {review.book_title}
                           </p>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                          <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed font-medium">
                             {review.excerpt}
                           </p>
                           
-                          <div className="mt-auto pt-4 border-t border-gray-50 dark:border-gray-800 flex items-center justify-between">
+                          <div className="mt-auto pt-5 border-t border-gray-50 dark:border-gray-800 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                              <IoTime /> {new Date(review.created_at).toLocaleDateString('id-ID')}
+                              <IoTime className="text-brand-500/50" /> {new Date(review.created_at).toLocaleDateString('id-ID')}
                             </div>
-                            <span className="text-xs font-black text-brand-600 group-hover:translate-x-1 transition-transform">
-                              BACA SELENGKAPNYA →
+                            <span className="text-[10px] font-black text-brand-600 group-hover:translate-x-1 transition-transform flex items-center gap-1 uppercase tracking-widest">
+                              Baca <IoChevronForward />
                             </span>
                           </div>
                         </div>
@@ -333,15 +353,15 @@ export default function PublicProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-[2rem] border-2 border-dashed border-gray-100 dark:border-gray-800 shadow-sm">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">
+              <div className="text-center py-24 bg-white dark:bg-gray-900 rounded-[3rem] border-2 border-dashed border-gray-100 dark:border-gray-800 shadow-sm">
+                <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-5xl shadow-inner animate-pulse">
                   📚
                 </div>
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">
-                  Belum Ada Review
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
+                  Belum Ada Koleksi Review
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto font-medium">
-                  {profile.name} sedang menyiapkan beberapa review menarik untuk Anda.
+                <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto font-medium leading-relaxed">
+                  Sepertinya {profile.name} sedang asyik membaca dan belum sempat menulis review.
                 </p>
               </div>
             )}

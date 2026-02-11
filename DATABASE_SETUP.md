@@ -2,7 +2,7 @@
 
 ## 🗄️ Running Supabase Migrations
 
-Your database schema is ready in `supabase/schema.sql`. Here's how to apply it:
+Your database schema is ready in `database/schema.sql`. Here's how to apply it:
 
 ### Option 1: Via Supabase Dashboard (RECOMMENDED)
 
@@ -11,7 +11,7 @@ Your database schema is ready in `supabase/schema.sql`. Here's how to apply it:
    - Navigate to **SQL Editor**
 
 2. **Run the schema**
-   - Open `supabase/schema.sql`
+   - Open `database/schema.sql`
    - Copy entire contents
    - Paste into SQL Editor
    - Click **Run**
@@ -20,21 +20,22 @@ Your database schema is ready in `supabase/schema.sql`. Here's how to apply it:
    - Go to **Table Editor**
    - You should see: `profiles`, `categories`, `book_reviews`, `comments`, `review_likes`
 
-### Option 2: Via Supabase CLI
+## 📦 Storage Buckets Setup
 
-```bash
-# Install Supabase CLI (if not installed)
-npm install -g supabase
+To fix the "Bucket not found" error, you must create the following buckets in Supabase Storage:
 
-# Login to Supabase
-supabase login
+1. **profiles** (Public: Yes) - For user avatars
+2. **canvas-media** (Public: Yes) - For canvas images
+3. **library-covers** (Public: Yes) - For book covers
+4. **library-books** (Public: Yes) - For PDF files
 
-# Link to your project
-supabase link --project-ref oujzaihnpdffjnhfgfks
+### How to create:
+- Go to **Storage** in Supabase Dashboard.
+- Click **New Bucket**.
+- Enter the name (e.g., `profiles`) and toggle **Public**.
+- Repeat for all 4 buckets.
 
-# Run migrations
-supabase db push
-```
+**Alternatively**, run the script in `database/migrations/setup_storage.sql` in the SQL Editor.
 
 ## ✅ Database Schema Created
 

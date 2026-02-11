@@ -153,8 +153,8 @@ export function Header() {
                         <IoPerson className="w-full h-full p-1.5 text-gray-400" />
                       )}
                     </div>
-                    <span className="text-sm font-medium max-w-[100px] truncate text-gray-700 dark:text-gray-200">
-                      {session.user?.name?.split(" ")[0]}
+                    <span className="text-sm font-medium max-w-[150px] truncate text-gray-700 dark:text-gray-200">
+                      {(session.user as any)?.username || session.user?.name}
                     </span>
                     <IoChevronDown
                       className={`w-4 h-4 transition-transform text-gray-500 dark:text-gray-400 ${isUserMenuOpen ? "rotate-180" : ""}`}
@@ -175,7 +175,7 @@ export function Header() {
                             {session.user?.name}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
-                            {session.user?.email}
+                            {(session.user as any)?.username ? `@${(session.user as any).username}` : session.user?.email}
                           </p>
                         </div>
                         <div className="p-2">

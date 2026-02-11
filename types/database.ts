@@ -1,9 +1,11 @@
 export interface Profile {
   id: string;
-  email: string;
-  name: string | null;
+  email: string | null;
+  username: string | null;
+  full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  website: string | null;
   created_at: string;
   updated_at: string;
 }
