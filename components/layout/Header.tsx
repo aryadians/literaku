@@ -66,10 +66,11 @@ export function Header() {
               whileHover={{ rotate: [0, -10, 10, -10, 0] }}
               transition={{ duration: 0.5 }}
             >
-              <img
+              <Image
                 src="/icon.svg"
                 alt="Literaku"
-                className="w-full h-full object-contain"
+                fill
+                className="object-contain"
               />
             </motion.div>
             <span className="text-xl font-bold gradient-text hidden sm:inline">
@@ -154,7 +155,7 @@ export function Header() {
                       )}
                     </div>
                     <span className="text-sm font-medium max-w-[150px] truncate text-gray-700 dark:text-gray-200">
-                      {(session.user as any)?.username || session.user?.name}
+                      {session.user?.username || session.user?.name}
                     </span>
                     <IoChevronDown
                       className={`w-4 h-4 transition-transform text-gray-500 dark:text-gray-400 ${isUserMenuOpen ? "rotate-180" : ""}`}
@@ -175,7 +176,7 @@ export function Header() {
                             {session.user?.name}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
-                            {(session.user as any)?.username ? `@${(session.user as any).username}` : session.user?.email}
+                            {session.user?.username ? `@${session.user.username}` : session.user?.email}
                           </p>
                         </div>
                         <div className="p-2">
