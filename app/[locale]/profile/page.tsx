@@ -26,6 +26,38 @@ export default function ProfilePage() {
   });
   const [readHistory, setReadHistory] = useState<any[]>([]); // New State
 
+  // Badge Logic
+  const badges = [
+    {
+      id: "new_reader",
+      label: "New Reader",
+      icon: "🌱",
+      earned: stats.booksRead >= 1,
+      desc: "Mulai membaca buku pertama",
+    },
+    {
+      id: "critic",
+      label: "Critic",
+      icon: "✍️",
+      earned: stats.reviews >= 5,
+      desc: "Menulis 5+ ulasan buku",
+    },
+    {
+      id: "bookworm",
+      label: "Bookworm",
+      icon: "🐛",
+      earned: stats.booksRead >= 10,
+      desc: "Menyelesaikan 10+ buku",
+    },
+    {
+      id: "influencer",
+      label: "Influencer",
+      icon: "🔥",
+      earned: stats.reviews >= 10,
+      desc: "Ulasan Anda menginspirasi banyak orang",
+    },
+  ];
+
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -217,6 +249,31 @@ export default function ProfilePage() {
                   Buku Dibaca
                 </div>
               </div>
+            </div>
+          </Card>
+
+          {/* Achievements / Badges */}
+          <Card className="p-6">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span className="text-lg">🏆</span> Pencapaian
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                    badge.earned
+                      ? "border-brand-100 bg-brand-50/50 dark:bg-brand-900/10 dark:border-brand-900/30 opacity-100 shadow-sm"
+                      : "border-gray-50 bg-gray-50/30 dark:bg-gray-800/20 dark:border-gray-800 opacity-40 grayscale"
+                  }`}
+                  title={badge.desc}
+                >
+                  <div className="text-2xl mb-1">{badge.icon}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 leading-tight">
+                    {badge.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
 

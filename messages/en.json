@@ -189,6 +189,7 @@
   },
   "reviewList": {
     "title": "All Reviews",
+    "cta": "Write Review",
     "hero": {
       "title": "Book Reviews",
       "description": "Read in-depth reviews from the community and share your thoughts."

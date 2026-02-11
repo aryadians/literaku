@@ -189,6 +189,7 @@
   },
   "reviewList": {
     "title": "Semua Review",
+    "cta": "Tulis Review",
     "hero": {
       "title": "Review Buku",
       "description": "Baca ulasan mendalam dari komunitas dan bagikan pemikiranmu."

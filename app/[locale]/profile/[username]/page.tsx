@@ -37,8 +37,40 @@ export default function PublicProfilePage() {
   const params = useParams();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState({ booksRead: 0, reviewsCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const badges = [
+    {
+      id: "new_reader",
+      label: "New Reader",
+      icon: "🌱",
+      earned: stats.booksRead >= 1,
+      desc: "Mulai membaca buku pertama",
+    },
+    {
+      id: "critic",
+      label: "Critic",
+      icon: "✍️",
+      earned: stats.reviewsCount >= 5,
+      desc: "Menulis 5+ ulasan buku",
+    },
+    {
+      id: "bookworm",
+      label: "Bookworm",
+      icon: "🐛",
+      earned: stats.booksRead >= 10,
+      desc: "Menyelesaikan 10+ buku",
+    },
+    {
+      id: "influencer",
+      label: "Influencer",
+      icon: "🔥",
+      earned: stats.reviewsCount >= 10,
+      desc: "Ulasan Anda menginspirasi banyak orang",
+    },
+  ];
 
   useEffect(() => {
     if (params.username) {
@@ -49,11 +81,6 @@ export default function PublicProfilePage() {
   const fetchProfileData = async (username: string) => {
     try {
       setIsLoading(true);
-
-      // Note: We need to create this API endpoint
-      // For now we'll simulate fetching or use a direct Supabase client if we were server component
-      // But since we are client component, let's assume an API exists or fetch directly via supabase-js client if available
-      // For this demo, I'll hit a new API endpoint we will create next: /api/profiles/[username]
       const response = await fetch(`/api/profiles/${username}`);
 
       if (!response.ok) {
@@ -63,6 +90,7 @@ export default function PublicProfilePage() {
       const data = await response.json();
       setProfile(data.profile);
       setReviews(data.reviews);
+      setStats(data.stats || { booksRead: 0, reviewsCount: 0 });
     } catch (err) {
       console.error(err);
       setError("Gagal memuat profil pengguna.");
@@ -156,6 +184,26 @@ export default function PublicProfilePage() {
                     Bergabung {new Date(profile.created_at).getFullYear()}
                   </span>
                 </div>
+              </div>
+
+              {/* Badges Section */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-4">
+                {badges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-all ${
+                      badge.earned
+                        ? "bg-white dark:bg-gray-800 border-brand-100 dark:border-brand-900/30 opacity-100"
+                        : "bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800 opacity-40 grayscale"
+                    }`}
+                    title={badge.desc}
+                  >
+                    <span className="text-lg">{badge.icon}</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${badge.earned ? "text-brand-700 dark:text-brand-400" : "text-gray-500"}`}>
+                      {badge.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

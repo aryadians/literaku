@@ -80,16 +80,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (category) {
-      // Filter by category slug using inner join
-      // We use !inner to enforce the filter
-      query = query
-        .eq("categories.slug", category)
-        .not("categories", "is", null);
-
-      // Note: For this to work with Supabase JS client and PostgREST,
-      // the select statement needs to join categories correctly as done above.
-      // However, sometimes simpler approach is filtering by category_id if we had it, but we have slug.
-      // The .eq('categories.slug', val) works if the resource is embedded.
+      // Filter by category slug using a subquery or better relation filter
+      // The current query embedded categories as "categories", so we filter on its slug.
+      query = query.filter("categories.slug", "eq", category);
     }
 
     const { data: reviews, error, count } = await query;

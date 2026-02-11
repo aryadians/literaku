@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: Request,
@@ -7,53 +8,59 @@ export async function GET(
   const params = await props.params;
   const username = params.username;
 
-  // Mock Data Delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  try {
+    const supabase = await createClient();
 
-  // Mock Profile Data
-  const profile = {
-    id: "user-123",
-    name: "Mock User",
-    username: username,
-    avatar_url: null, // or a placeholder URL
-    bio: "Book lover. Coffee addict. Writing reviews in my free time.",
-    website: "https://example.com",
-    created_at: new Date().toISOString(),
-  };
+    // 1. Fetch Profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url, bio, website, created_at")
+      .eq("username", username)
+      .single();
 
-  // Mock Reviews Data associated with this user
-  const reviews = [
-    {
-      id: "review-1",
-      title: "The Great Gatsby: A Classic?",
-      slug: "the-great-gatsby-review",
-      book_title: "The Great Gatsby",
-      book_author: "F. Scott Fitzgerald",
-      book_cover_url:
-        "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1490528560i/4671.jpg",
-      rating: 5,
-      excerpt:
-        "A hauntingly beautiful story of wealth, love, and the American Dream...",
-      created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-      categories: { name: "Fiction" },
-    },
-    {
-      id: "review-2",
-      title: "Atomic Habits: Life Changing",
-      slug: "atomic-habits-review",
-      book_title: "Atomic Habits",
-      book_author: "James Clear",
-      book_cover_url:
-        "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1655988385i/40121378.jpg",
-      rating: 4,
-      excerpt: "Practical strategies to form good habits and break bad ones.",
-      created_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-      categories: { name: "Self-Help" },
-    },
-  ];
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-  return NextResponse.json({
-    profile,
-    reviews,
-  });
+    // 2. Fetch Reviews with categories
+    const { data: reviews } = await supabase
+      .from("book_reviews")
+      .select(`
+        id,
+        title,
+        slug,
+        book_title,
+        book_cover_url,
+        rating,
+        created_at,
+        excerpt,
+        categories (
+          name
+        )
+      `)
+      .eq("user_id", profile.id)
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    // 3. Fetch Stats for Badges
+    const { count: booksRead } = await supabase
+      .from("read_history")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", profile.id);
+
+    return NextResponse.json({
+      profile: {
+        ...profile,
+        name: profile.full_name // Map full_name to name for frontend compatibility
+      },
+      reviews: reviews || [],
+      stats: {
+        booksRead: booksRead || 0,
+        reviewsCount: reviews?.length || 0
+      }
+    });
+  } catch (error) {
+    console.error("Profile API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

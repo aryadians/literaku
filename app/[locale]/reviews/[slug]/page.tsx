@@ -72,12 +72,27 @@ export default function ReviewDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [commentText, setCommentText] = useState(""); // Form state
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
     if (params.slug) {
       fetchReview(params.slug as string);
     }
   }, [params.slug]);
+
+  useEffect(() => {
+    if (review) {
+      setLikeCount(review.review_likes?.length || 0);
+      // Check if user liked (requires user ID)
+      if (session?.user?.id) {
+        const hasLiked = review.review_likes?.some(
+          (l) => (l.user_id || l.id) === session.user.id
+        );
+        setIsLiked(!!hasLiked);
+      }
+    }
+  }, [review, session]);
 
   // Subscribe to Realtime Comments
   useEffect(() => {
@@ -209,22 +224,22 @@ export default function ReviewDetailPage() {
       return;
     }
 
-    // Optimistic Update can be tricky without knowing current state (liked or not)
-    // For now, we'll just call the API and refresh
+    // Optimistic Update
+    const prevIsLiked = isLiked;
+    setIsLiked(!prevIsLiked);
+    setLikeCount(prev => prevIsLiked ? prev - 1 : prev + 1);
+
     try {
       const response = await fetch(`/api/reviews/${params.slug}/like`, {
         method: "POST",
       });
 
       if (!response.ok) throw new Error("Failed to like");
-
-      const data = await response.json();
-
-      // Manually update state or refetch
-      // Simpler to refetch for accuracy
-      fetchReview(params.slug as string);
     } catch (error) {
       console.error("Error liking review:", error);
+      // Revert on error
+      setIsLiked(prevIsLiked);
+      setLikeCount(prev => prevIsLiked ? prev + 1 : prev - 1);
     }
   };
 
@@ -487,18 +502,25 @@ export default function ReviewDetailPage() {
               <div className="flex items-center gap-6">
                 <button
                   onClick={handleLike}
-                  className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors group"
+                  className={`flex items-center gap-2 transition-colors group ${
+                    isLiked ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+                  }`}
                 >
-                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
+                  <motion.div
+                    whileTap={{ scale: 0.8 }}
+                    animate={isLiked ? { scale: [1, 1.4, 1] } : {}}
+                    className={`p-2 rounded-full transition-colors ${
+                      isLiked
+                        ? "bg-red-50 dark:bg-red-900/20"
+                        : "bg-gray-100 dark:bg-gray-800 group-hover:bg-red-50 dark:group-hover:bg-red-900/20"
+                    }`}
+                  >
                     <IoHeart
-                      className={`w-6 h-6 ${
-                        // Check if current user liked logic would go here if we had that data easy access
-                        ""
-                      }`}
+                      className={`w-6 h-6 ${isLiked ? "fill-current" : ""}`}
                     />
-                  </div>
-                  <span className="font-semibold">
-                    {review.review_likes?.length || 0} {t("engagement.likes")}
+                  </motion.div>
+                  <span className="font-bold">
+                    {likeCount} {t("engagement.likes")}
                   </span>
                 </button>
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">

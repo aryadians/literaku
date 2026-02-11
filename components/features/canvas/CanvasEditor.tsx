@@ -195,9 +195,14 @@ export default function CanvasEditor({
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
+    <div className="max-w-4xl mx-auto pb-20 relative">
+      {/* Visual Enhancements: Grid Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+      </div>
+
       {/* Editor Header */}
-      <div className="flex items-center justify-between mb-12 sticky top-0 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-xl py-4 z-20">
+      <div className="flex items-center justify-between mb-12 sticky top-0 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-xl py-4 z-20 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
@@ -253,14 +258,20 @@ export default function CanvasEditor({
           className="w-full text-5xl font-black bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-200 dark:placeholder:text-gray-800"
         />
 
-        <div className="space-y-6">
+        <div className="space-y-6 relative z-10">
           {blocks.map((block, index) => (
-            <div key={index} className="group relative">
+            <motion.div
+              key={index}
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="group relative bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all"
+            >
               <button
                 onClick={() => removeBlock(index)}
-                className="absolute -left-12 top-2 p-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-all"
+                className="absolute -right-4 -top-4 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110 z-10"
               >
-                <IoTrash />
+                <IoTrash className="text-sm" />
               </button>
 
               {block.type === "text" ? (
@@ -269,19 +280,19 @@ export default function CanvasEditor({
                   value={block.content}
                   onChange={(e) => handleTextChange(index, e.target.value)}
                   placeholder={t("placeholder")}
-                  className="w-full bg-transparent outline-none text-lg text-gray-700 dark:text-gray-300 min-h-[1.5rem] resize-none leading-relaxed"
+                  className="w-full bg-transparent outline-none text-xl text-gray-700 dark:text-gray-300 min-h-[1.5rem] resize-none leading-relaxed font-serif"
                   rows={block.content.split("\n").length || 1}
                 />
               ) : (
-                <div className="relative rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800">
+                <div className="relative rounded-xl overflow-hidden shadow-inner bg-gray-50 dark:bg-gray-800">
                   <img
                     src={block.content}
                     alt="Canvas element"
-                    className="w-full h-auto"
+                    className="w-full h-auto max-h-[500px] object-contain"
                   />
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
 
