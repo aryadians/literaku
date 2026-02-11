@@ -40,9 +40,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        serif: ["var(--font-merriweather)", "Georgia", "serif"],
-        display: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-plus-jakarta)", "system-ui", "sans-serif"],
+        serif: ["var(--font-lora)", "Georgia", "serif"],
+        display: ["var(--font-plus-jakarta)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "display-lg": ["3.5rem", { lineHeight: "1.1", fontWeight: "800" }],

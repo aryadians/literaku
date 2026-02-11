@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-// import { inter, merriweather } from "@/lib/fonts";
+import { plusJakartaSans, lora } from "@/lib/fonts";
 import "../globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -36,7 +36,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`scroll-smooth`}
+      className={`scroll-smooth ${plusJakartaSans.variable} ${lora.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,7 +46,7 @@ export default async function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className="min-h-screen bg-gradient-warm dark:bg-gray-950">
+      <body className="min-h-screen bg-gradient-warm dark:bg-gray-950 font-sans">
         <ThemeProvider>
           <AuthProvider>
             <NextIntlClientProvider messages={messages} locale={locale}>

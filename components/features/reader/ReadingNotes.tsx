@@ -111,7 +111,7 @@ export function ReadingNotes({ bookSlug, isOpen, onClose }: ReadingNotesProps) {
               </div>
             ) : (
               <textarea
-                className="w-full h-full resize-none bg-transparent outline-none text-gray-700 dark:text-gray-300 leading-relaxed placeholder:text-gray-400 font-mono text-sm"
+                className="w-full h-full resize-none bg-transparent outline-none text-gray-700 dark:text-gray-300 leading-relaxed placeholder:text-gray-400 font-serif text-base"
                 placeholder="Tulis ide, kutipan, atau pemikiran Anda di sini..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}

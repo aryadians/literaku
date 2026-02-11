@@ -1,17 +1,17 @@
-import { Inter, Merriweather } from "next/font/google";
+import { Plus_Jakarta_Sans, Lora } from "next/font/google";
 
-// Modern sans-serif for UI
-export const inter = Inter({
+// Modern sans-serif for UI (Clean, high-end feel)
+export const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-plus-jakarta",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-// Serif font for reading content
-export const merriweather = Merriweather({
+// Elegant serif font for reading content and headings
+export const lora = Lora({
   subsets: ["latin"],
-  variable: "--font-merriweather",
+  variable: "--font-lora",
   display: "swap",
-  weight: ["300", "400", "700", "900"],
+  weight: ["400", "500", "600", "700"],
 });

@@ -80,9 +80,9 @@ export default function HomePage() {
                 <span className="w-2 h-2 rounded-full bg-brand-500"></span>
                 {t("hero.badge")}
               </div>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-[1.1] mb-6 tracking-tight text-gray-900 dark:text-white">
                 {t("hero.title")} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 italic">
                   {t("hero.titleAccent")}
                 </span>
               </h1>
