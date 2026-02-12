@@ -13,7 +13,7 @@ import { IoCloudUpload, IoBook, IoImage, IoLibrary } from "react-icons/io5";
 
 export default function AdminUploadPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -34,48 +34,23 @@ export default function AdminUploadPage() {
 
   // Check Admin Status
   useEffect(() => {
-    async function checkRole() {
-      const supabase = createClient();
-      if (!session?.user?.email) return;
+    if (status === "loading") return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("email", session.user.email) // Using email to link since ID might differ in session vs DB if not synced perfectly, but RLS uses ID.
-        // Better: Fetch by ID if available in session, or just try RLS.
-        // Actually, let's fetch by ID if we can, or just trust the previous "user is admin" update.
-        // For safety, let's check the role column.
-        .single();
-
-      // Also checking by ID if above fails or if session has ID
-      if (profile?.role === "admin") {
-        setIsAdmin(true);
-      } else {
-        // Check by ID if available
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profileById } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-          if (profileById?.role === "admin") setIsAdmin(true);
-        }
-      }
-      setIsLoading(false);
+    if (session?.user?.role === "admin") {
+      setIsAdmin(true);
+    } else {
+      router.push("/");
     }
-
+    
     async function fetchCategories() {
       const supabase = createClient();
       const { data } = await supabase.from("categories").select("id, name");
       if (data) setCategories(data);
     }
 
-    checkRole();
     fetchCategories();
-  }, [session]);
+    setIsLoading(false);
+  }, [session, status, router]);
 
   const handleUpload = async (e: React.FormEvent) => {
     const supabase = createClient();

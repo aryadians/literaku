@@ -34,13 +34,27 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Email atau password salah");
       } else {
-        router.push("/dashboard");
+        // We can't easily check the role here without fetching the session
+        // But we can just redirect to dashboard, and let the layout/middleware handle it
+        // Or fetch session to be sure where to redirect
+        const session = await fetch("/api/auth/session").then(res => res.json());
+        if (session?.user?.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAdminQuickLogin = () => {
+    setEmail("admin@literaku.com");
+    setPassword("admin123");
+    // Optionally auto-submit or just fill
   };
 
   const handleGithubLogin = async () => {
@@ -124,15 +138,28 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-                isLoading={isLoading}
-              >
-                {t("loginButton")}
-              </Button>
+              <div className="grid grid-cols-1 gap-3">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  isLoading={isLoading}
+                >
+                  {t("loginButton")}
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-dashed border-red-300 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/10"
+                  onClick={handleAdminQuickLogin}
+                  disabled={isLoading}
+                >
+                  Login as Admin (Demo)
+                </Button>
+              </div>
             </form>
 
             <div className="relative my-6">

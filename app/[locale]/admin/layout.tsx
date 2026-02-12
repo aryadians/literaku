@@ -32,32 +32,19 @@ export default function AdminLayout({
 
   // Check Admin Status
   useEffect(() => {
-    async function checkRole() {
-      const supabase = createClient();
-      if (status === "loading") return;
+    if (status === "loading") return;
 
-      if (!session?.user) {
-        router.push("/");
-        return;
-      }
-
-      // 1. Check if session has role (if customized)
-      // 2. Fetch from DB
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("email", session.user.email)
-        .single();
-
-      if (profile?.role === "admin") {
-        setIsAdmin(true);
-      } else {
-        router.push("/");
-      }
-      setIsLoading(false);
+    if (!session?.user) {
+      router.push("/auth/login");
+      return;
     }
 
-    checkRole();
+    if (session.user.role === "admin") {
+      setIsAdmin(true);
+    } else {
+      router.push("/");
+    }
+    setIsLoading(false);
   }, [session, status, router]);
 
   if (isLoading) {
@@ -83,6 +70,11 @@ export default function AdminLayout({
       name: "Books",
       href: "/admin/books",
       icon: IoLibrary,
+    },
+    {
+      name: "Categories",
+      href: "/admin/categories",
+      icon: IoBook,
     },
     {
       name: "Users",

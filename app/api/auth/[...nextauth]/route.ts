@@ -31,10 +31,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Fetch username from profiles
+        // Fetch username and role from profiles
         const { data: profile } = await supabase
           .from("profiles")
-          .select("username")
+          .select("username, role")
           .eq("id", data.user.id)
           .single();
 
@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           name: data.user.user_metadata?.name || data.user.email!.split("@")[0],
           image: data.user.user_metadata?.avatar_url || null,
           username: profile?.username || null,
+          role: profile?.role || "user",
         } as any;
       },
     }),
@@ -53,6 +54,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.username = (user as any).username;
+        token.role = (user as any).role;
       }
       
       // Handle update trigger from useSession().update()
@@ -60,6 +62,7 @@ export const authOptions: NextAuthOptions = {
         if (session.user?.name) token.name = session.user.name;
         if (session.user?.image) token.picture = session.user.image;
         if (session.user?.username) token.username = session.user.username;
+        if (session.user?.role) token.role = session.user.role;
       }
       
       return token;
@@ -68,6 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

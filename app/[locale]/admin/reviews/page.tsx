@@ -32,16 +32,15 @@ export default function AdminReviewsPage() {
       let query = supabase.from("book_reviews").select(
         `
           *,
-          books (title),
-          profiles (full_name, username)
+          books:book_reference_id (title),
+          profiles:user_id (full_name, username)
         `,
         { count: "exact" },
       );
 
       if (search) {
-        // Search in review content or join fields (complex)
-        // Simple search on content first
-        query = query.ilike("comment", `%${search}%`);
+        // Search in review content
+        query = query.ilike("content", `%${search}%`);
       }
 
       const from = (page - 1) * LIMIT;
@@ -161,9 +160,9 @@ export default function AdminReviewsPage() {
                     </td>
                     <td
                       className="px-6 py-4 max-w-xs truncate"
-                      title={review.comment}
+                      title={review.content}
                     >
-                      {review.comment}
+                      {review.content}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button

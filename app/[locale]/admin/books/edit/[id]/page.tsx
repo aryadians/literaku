@@ -13,7 +13,7 @@ import { IoCloudUpload, IoImage, IoSave, IoArrowBack } from "react-icons/io5";
 export default function AdminEditBookPage() {
   const router = useRouter();
   const params = useParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,30 +33,24 @@ export default function AdminEditBookPage() {
 
   // Check Admin & Fetch Data
   useEffect(() => {
+    if (status === "loading") return;
+
+    if (session?.user?.role !== "admin") {
+      router.push("/");
+      return;
+    }
+    setIsAdmin(true);
+
     async function init() {
       const supabase = createClient();
-      if (!session?.user?.email) return;
-
-      // 1. Check Admin Role
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("email", session.user.email)
-        .single();
-
-      if (profile?.role !== "admin") {
-        router.push("/");
-        return;
-      }
-      setIsAdmin(true);
-
-      // 2. Fetch Categories
+      
+      // 1. Fetch Categories
       const { data: cats } = await supabase
         .from("categories")
         .select("id, name");
       if (cats) setCategories(cats);
 
-      // 3. Fetch Book Data
+      // 2. Fetch Book Data
       if (params.id) {
         const { data: book, error } = await supabase
           .from("books")
@@ -83,7 +77,7 @@ export default function AdminEditBookPage() {
     }
 
     init();
-  }, [session, params.id, router]);
+  }, [session, status, params.id, router]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     const supabase = createClient();
