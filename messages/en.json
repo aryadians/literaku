@@ -298,5 +298,71 @@
       "uploadImage": "Upload Image",
       "titlePlaceholder": "Note Title"
     }
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "overview": "Dashboard Overview",
+    "totalBooks": "Total Books",
+    "totalUsers": "Total Users",
+    "totalReviews": "Total Reviews",
+    "totalCategories": "Total Categories",
+    "quickActions": "Quick Actions",
+    "uploadBook": "Upload Book",
+    "manageBooks": "Manage Books",
+    "manageCategories": "Manage Categories",
+    "manageUsers": "Manage Users",
+    "manageReviews": "Moderate Reviews",
+    "recentBooks": "Recent Books",
+    "recentReviews": "Recent Reviews",
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "books": "Books",
+      "categories": "Categories",
+      "users": "Users",
+      "reviews": "Reviews",
+      "upload": "Upload",
+      "exit": "Exit"
+    },
+    "books": {
+      "title": "Manage Books",
+      "add": "Add Book",
+      "search": "Search title or author...",
+      "table": {
+        "title": "Title",
+        "author": "Author",
+        "category": "Category",
+        "year": "Year",
+        "actions": "Actions"
+      },
+      "deleteConfirm": "Delete Book?",
+      "deleteWarning": "Are you sure you want to delete \"{title}\"? This action cannot be undone."
+    },
+    "categories": {
+      "title": "Manage Categories",
+      "add": "Add Category",
+      "edit": "Edit Category",
+      "search": "Search categories...",
+      "table": {
+        "name": "Name",
+        "slug": "Slug",
+        "description": "Description",
+        "actions": "Actions"
+      }
+    },
+    "upload": {
+      "title": "Upload New Book",
+      "subtitle": "Add digital book collections for the public library",
+      "form": {
+        "title": "Book Title",
+        "author": "Author",
+        "category": "Category",
+        "year": "Published Year",
+        "description": "Short Description",
+        "fileUpload": "File Upload",
+        "pdf": "Upload PDF File",
+        "cover": "Upload Cover (Img)",
+        "submit": "Upload Book"
+      }
+    }
   }
 }

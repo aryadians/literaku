@@ -298,5 +298,71 @@
       "uploadImage": "Unggah Gambar",
       "titlePlaceholder": "Judul Catatan"
     }
+  },
+  "admin": {
+    "dashboard": "Dashboard Admin",
+    "overview": "Ikhtisar Dashboard",
+    "totalBooks": "Total Buku",
+    "totalUsers": "Total Pengguna",
+    "totalReviews": "Total Ulasan",
+    "totalCategories": "Total Kategori",
+    "quickActions": "Aksi Cepat",
+    "uploadBook": "Upload Buku",
+    "manageBooks": "Kelola Buku",
+    "manageCategories": "Kelola Kategori",
+    "manageUsers": "Kelola Pengguna",
+    "manageReviews": "Moderasi Ulasan",
+    "recentBooks": "Buku Terbaru",
+    "recentReviews": "Ulasan Terbaru",
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "books": "Buku",
+      "categories": "Kategori",
+      "users": "Pengguna",
+      "reviews": "Ulasan",
+      "upload": "Upload",
+      "exit": "Keluar"
+    },
+    "books": {
+      "title": "Kelola Buku",
+      "add": "Tambah Buku",
+      "search": "Cari judul atau penulis...",
+      "table": {
+        "title": "Judul",
+        "author": "Penulis",
+        "category": "Kategori",
+        "year": "Tahun",
+        "actions": "Aksi"
+      },
+      "deleteConfirm": "Hapus Buku?",
+      "deleteWarning": "Anda yakin ingin menghapus \"{title}\"? Tindakan ini tidak dapat dibatalkan."
+    },
+    "categories": {
+      "title": "Kelola Kategori",
+      "add": "Tambah Kategori",
+      "edit": "Edit Kategori",
+      "search": "Cari kategori...",
+      "table": {
+        "name": "Nama",
+        "slug": "Slug",
+        "description": "Deskripsi",
+        "actions": "Aksi"
+      }
+    },
+    "upload": {
+      "title": "Upload Buku Baru",
+      "subtitle": "Tambahkan koleksi buku digital untuk perpustakaan umum",
+      "form": {
+        "title": "Judul Buku",
+        "author": "Penulis",
+        "category": "Kategori",
+        "year": "Tahun Terbit",
+        "description": "Deskripsi Singkat",
+        "fileUpload": "File Upload",
+        "pdf": "Upload File PDF",
+        "cover": "Upload Sampul (Gbr)",
+        "submit": "Upload Buku"
+      }
+    }
   }
 }

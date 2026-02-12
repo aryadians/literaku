@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
@@ -15,6 +16,8 @@ import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 
 export default function AdminUsersPage() {
+  const t = useTranslations("admin");
+  const commonT = useTranslations("common");
   const { data: session } = useSession();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +38,7 @@ export default function AdminUsersPage() {
 
       if (search) {
         query = query.or(
-          `full_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`,
+          `full_name.ilike.%${search}%,username.ilike.%${search}%`,
         );
       }
 
@@ -66,28 +69,13 @@ export default function AdminUsersPage() {
   ) => {
     const supabase = createClient();
     const newRole = currentRole === "admin" ? "user" : "admin";
-    const action = newRole === "admin" ? "Jadikan Admin" : "Hapus Admin";
-
-    // Prevent removing own admin status if fetching current user ID is possible,
-    // but for now relying on backend policies or just warning.
-    // Actually, let's verify if current user is the one being modified using session email
-    // (since we don't have id in session easily available without checking).
-
-    // Simple check:
-    if (session?.user?.email) {
-      // We'd need to know if 'id' matches current user.
-      // We can check if email matches (if we fetched email in profiles, but profiles might not have email depending on schema).
-      // 'profiles' usually has 'id' matching auth.uid.
-      // We can't easily check auth.uid from session here without extra logic.
-      // For now, simpler: Just confirm.
-    }
-
+    
     const result = await Swal.fire({
-      title: `${action}?`,
-      text: `Anda yakin ingin mengubah status ${name} menjadi ${newRole}?`,
+      title: "Update Role?",
+      text: `${name} -> ${newRole}`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Ya, Ubah",
+      confirmButtonText: commonT("save"),
     });
 
     if (result.isConfirmed) {
@@ -97,9 +85,9 @@ export default function AdminUsersPage() {
         .eq("id", id);
 
       if (error) {
-        Swal.fire("Gagal", error.message, "error");
+        Swal.fire("Error", error.message, "error");
       } else {
-        Swal.fire("Berhasil", `Role user diubah menjadi ${newRole}`, "success");
+        Swal.fire(commonT("success"), "", "success");
         fetchUsers();
       }
     }
@@ -107,22 +95,21 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (id: string, name: string) => {
     const supabase = createClient();
-    // Warning: This only deletes the profile.
     const result = await Swal.fire({
-      title: "Hapus User?",
-      text: `Hapus profil "${name}"? Akun login mungkin masih ada, tapi data profil akan hilang.`,
+      title: commonT("delete") + "?",
+      text: name,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      confirmButtonText: "Ya, Hapus!",
+      confirmButtonText: commonT("delete"),
     });
 
     if (result.isConfirmed) {
       const { error } = await supabase.from("profiles").delete().eq("id", id);
       if (error) {
-        Swal.fire("Gagal", error.message, "error");
+        Swal.fire("Error", error.message, "error");
       } else {
-        Swal.fire("Berhasil", "User berhasil dihapus", "success");
+        Swal.fire(commonT("success"), "", "success");
         fetchUsers();
       }
     }
@@ -131,7 +118,7 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-        Kelola Pengguna
+        {t("manageUsers")}
       </h1>
 
       <Card>
@@ -140,7 +127,7 @@ export default function AdminUsersPage() {
             <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari nama, username, atau email..."
+              placeholder={commonT("search")}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -152,23 +139,23 @@ export default function AdminUsersPage() {
           <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400">
             <thead className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
               <tr>
-                <th className="px-6 py-3">Nama</th>
+                <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Username</th>
                 <th className="px-6 py-3">Role</th>
-                <th className="px-6 py-3 text-right">Aksi</th>
+                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center">
-                    Loading users...
+                    {commonT("loading")}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center">
-                    Tidak ada user ditemukan.
+                    No users found.
                   </td>
                 </tr>
               ) : (
@@ -223,11 +210,6 @@ export default function AdminUsersPage() {
                             ? "text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                             : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
                         }`}
-                        title={
-                          user.role === "admin"
-                            ? "Hapus Admin"
-                            : "Jadikan Admin"
-                        }
                       >
                         {user.role === "admin" ? (
                           <IoShieldOutline className="w-5 h-5" />
@@ -240,7 +222,6 @@ export default function AdminUsersPage() {
                           handleDelete(user.id, user.full_name || user.username)
                         }
                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Hapus User"
                       >
                         <IoTrash className="w-5 h-5" />
                       </button>
@@ -252,7 +233,6 @@ export default function AdminUsersPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-center gap-2">
             <Button

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -12,6 +12,8 @@ import Swal from "sweetalert2";
 import { IoCloudUpload, IoBook, IoImage, IoLibrary } from "react-icons/io5";
 
 export default function AdminUploadPage() {
+  const t = useTranslations("admin.upload");
+  const commonT = useTranslations("common");
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,7 +58,7 @@ export default function AdminUploadPage() {
     const supabase = createClient();
     e.preventDefault();
     if (!pdfFile || !formData.title || !formData.author) {
-      Swal.fire("Error", "Mohon lengkapi data dan file buku", "error");
+      Swal.fire("Error", "Missing required fields", "error");
       return;
     }
 
@@ -110,18 +112,14 @@ export default function AdminUploadPage() {
 
       if (dbError) throw dbError;
 
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Buku berhasil ditambahkan ke perpustakaan.",
-        icon: "success",
-      });
+      Swal.fire(commonT("success"), "", "success");
 
-      router.push("/library"); // Redirect to library
+      router.push("/admin/books");
     } catch (error: any) {
       console.error(error);
       Swal.fire(
-        "Gagal",
-        error.message || "Terjadi kesalahan saat upload",
+        "Error",
+        error.message || "Upload failed",
         "error",
       );
     } finally {
@@ -129,21 +127,9 @@ export default function AdminUploadPage() {
     }
   };
 
-  if (isLoading) return <div className="p-10 text-center">Loading...</div>;
+  if (isLoading) return <div className="p-10 text-center">{commonT("loading")}</div>;
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-500">Akses Ditolak</h1>
-          <p>Hanya Admin yang boleh mengakses halaman ini.</p>
-          <Button className="mt-4" onClick={() => router.push("/")}>
-            Kembali
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -151,10 +137,10 @@ export default function AdminUploadPage() {
         <div className="text-center mb-10">
           <IoLibrary className="mx-auto h-12 w-12 text-brand-600 dark:text-brand-400" />
           <h1 className="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Upload Buku Baru (PDF)
+            {t("title")}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Tambahkan koleksi buku digital untuk perpustakaan umum
+            {t("subtitle")}
           </p>
         </div>
 
@@ -163,8 +149,7 @@ export default function AdminUploadPage() {
             <form onSubmit={handleUpload} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
-                  label="Judul Buku"
-                  placeholder="Contoh: Laskar Pelangi"
+                  label={t("form.title")}
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
@@ -172,8 +157,7 @@ export default function AdminUploadPage() {
                   required
                 />
                 <Input
-                  label="Penulis"
-                  placeholder="Nama Penulis"
+                  label={t("form.author")}
                   value={formData.author}
                   onChange={(e) =>
                     setFormData({ ...formData, author: e.target.value })
@@ -185,7 +169,7 @@ export default function AdminUploadPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Kategori
+                    {t("form.category")}
                   </label>
                   <select
                     className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 focus:border-brand-500 outline-none transition-all"
@@ -194,7 +178,7 @@ export default function AdminUploadPage() {
                       setFormData({ ...formData, category_id: e.target.value })
                     }
                   >
-                    <option value="">Pilih Kategori</option>
+                    <option value="">Select Category</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -203,7 +187,7 @@ export default function AdminUploadPage() {
                   </select>
                 </div>
                 <Input
-                  label="Tahun Terbit"
+                  label={t("form.year")}
                   type="number"
                   value={formData.year}
                   onChange={(e) =>
@@ -214,11 +198,10 @@ export default function AdminUploadPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Deskripsi Singkat
+                  {t("form.description")}
                 </label>
                 <textarea
                   className="w-full h-32 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 focus:border-brand-500 outline-none transition-all resize-none"
-                  placeholder="Sinopsis buku..."
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -228,7 +211,7 @@ export default function AdminUploadPage() {
 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  File Upload
+                  {t("form.fileUpload")}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -242,9 +225,8 @@ export default function AdminUploadPage() {
                     />
                     <IoBook className="mx-auto h-8 w-8 text-brand-500 mb-2" />
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {pdfFile ? pdfFile.name : "Upload File PDF"}
+                      {pdfFile ? pdfFile.name : t("form.pdf")}
                     </p>
-                    <p className="text-xs text-gray-500">Maks 50MB</p>
                   </div>
 
                   {/* Cover Upload */}
@@ -259,9 +241,8 @@ export default function AdminUploadPage() {
                     />
                     <IoImage className="mx-auto h-8 w-8 text-indigo-500 mb-2" />
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {coverFile ? coverFile.name : "Upload Sampul (Gbr)"}
+                      {coverFile ? coverFile.name : t("form.cover")}
                     </p>
-                    <p className="text-xs text-gray-500">JPG/PNG</p>
                   </div>
                 </div>
               </div>
@@ -274,7 +255,7 @@ export default function AdminUploadPage() {
                 isLoading={isUploading}
               >
                 <IoCloudUpload className="mr-2 h-5 w-5" />
-                Upload Buku
+                {t("form.submit")}
               </Button>
             </form>
           </Card.Content>

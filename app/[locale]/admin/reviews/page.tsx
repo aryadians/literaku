@@ -2,16 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { IoSearch, IoTrash, IoStar } from "react-icons/io5";
+import { IoSearch, IoTrash, IoStar, IoFilter } from "react-icons/io5";
 import Swal from "sweetalert2";
-import Link from "next/link";
 
 export default function AdminReviewsPage() {
+  const t = useTranslations("admin");
+  const commonT = useTranslations("common");
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const LIMIT = 10;
@@ -20,15 +23,11 @@ export default function AdminReviewsPage() {
 
   useEffect(() => {
     fetchReviews();
-  }, [page, search]);
+  }, [page, search, ratingFilter]);
 
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      // Note: We need to make sure foreign keys exist for this join to work seamlessly.
-      // If no explicit FK in Supabase UI, we might need to rely on matching columns.
-      // Assuming 'book_id' references 'books.id' and 'user_id' references 'profiles.id'.
-
       let query = supabase.from("book_reviews").select(
         `
           *,
@@ -39,8 +38,11 @@ export default function AdminReviewsPage() {
       );
 
       if (search) {
-        // Search in review content
-        query = query.ilike("content", `%${search}%`);
+        query = query.or(`content.ilike.%${search}%,book_title.ilike.%${search}%`);
+      }
+
+      if (ratingFilter) {
+        query = query.eq("rating", parseInt(ratingFilter));
       }
 
       const from = (page - 1) * LIMIT;
@@ -65,12 +67,12 @@ export default function AdminReviewsPage() {
 
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
-      title: "Hapus Ulasan?",
-      text: "Tindakan ini tidak dapat dibatalkan.",
+      title: commonT("delete") + "?",
+      text: "...",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      confirmButtonText: "Ya, Hapus!",
+      confirmButtonText: commonT("delete"),
     });
 
     if (result.isConfirmed) {
@@ -79,9 +81,9 @@ export default function AdminReviewsPage() {
         .delete()
         .eq("id", id);
       if (error) {
-        Swal.fire("Gagal", error.message, "error");
+        Swal.fire("Error", error.message, "error");
       } else {
-        Swal.fire("Berhasil", "Ulasan berhasil dihapus", "success");
+        Swal.fire(commonT("success"), "", "success");
         fetchReviews();
       }
     }
@@ -90,20 +92,42 @@ export default function AdminReviewsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-        Moderasi Ulasan
+        {t("manageReviews")}
       </h1>
 
       <Card>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="relative max-w-md">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
             <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari isi ulasan..."
+              placeholder={commonT("search")}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <IoFilter className="text-gray-400" />
+            <select
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+              value={ratingFilter}
+              onChange={(e) => {
+                setRatingFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">{commonT("rating")}</option>
+              {[5, 4, 3, 2, 1].map((r) => (
+                <option key={r} value={r}>
+                  {r} Stars
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -112,23 +136,23 @@ export default function AdminReviewsPage() {
             <thead className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
               <tr>
                 <th className="px-6 py-3">User</th>
-                <th className="px-6 py-3">Buku</th>
+                <th className="px-6 py-3">Book</th>
                 <th className="px-6 py-3">Rating</th>
-                <th className="px-6 py-3">Ulasan</th>
-                <th className="px-6 py-3 text-right">Aksi</th>
+                <th className="px-6 py-3">Review</th>
+                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center">
-                    Loading reviews...
+                    {commonT("loading")}
                   </td>
                 </tr>
               ) : reviews.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center">
-                    Tidak ada ulasan ditemukan.
+                    No reviews found.
                   </td>
                 </tr>
               ) : (
@@ -148,7 +172,7 @@ export default function AdminReviewsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {review.books?.title || "Unknown Book"}
+                      {review.books?.title || review.book_title || "Unknown Book"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center text-yellow-400">
@@ -168,7 +192,6 @@ export default function AdminReviewsPage() {
                       <button
                         onClick={() => handleDelete(review.id)}
                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Hapus Ulasan"
                       >
                         <IoTrash className="w-5 h-5" />
                       </button>
@@ -180,7 +203,6 @@ export default function AdminReviewsPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-center gap-2">
             <Button

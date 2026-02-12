@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import {
   IoLibrary,
@@ -14,6 +15,7 @@ import {
   IoLogOut,
   IoMenu,
   IoClose,
+  IoBook,
 } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
@@ -23,6 +25,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("admin.sidebar");
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
@@ -62,32 +65,32 @@ export default function AdminLayout({
 
   const menuItems = [
     {
-      name: "Dashboard",
+      name: t("dashboard"),
       href: "/admin",
       icon: IoStatsChart,
     },
     {
-      name: "Books",
+      name: t("books"),
       href: "/admin/books",
       icon: IoLibrary,
     },
     {
-      name: "Categories",
+      name: t("categories"),
       href: "/admin/categories",
       icon: IoBook,
     },
     {
-      name: "Users",
+      name: t("users"),
       href: "/admin/users",
       icon: IoPeople,
     },
     {
-      name: "Reviews",
+      name: t("reviews"),
       href: "/admin/reviews",
       icon: IoChatbubbles,
     },
     {
-      name: "Upload",
+      name: t("upload"),
       href: "/admin/upload",
       icon: IoCloudUpload,
     },
@@ -111,10 +114,7 @@ export default function AdminLayout({
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -280 }}
-        animate={{ x: isSidebarOpen ? 0 : -280 }} // Toggle for mobile, maybe persistent for desktop?
-        // Actually, let's make it responsive:
-        // Desktop: Always visible (or togglable if we want), Mobile: Hidden by default
-        // For simplicity: Mobile toggle, Desktop always visible.
+        animate={{ x: isSidebarOpen ? 0 : -280 }}
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto`}
       >
         <div className="flex flex-col h-full">
@@ -185,7 +185,7 @@ export default function AdminLayout({
                 onClick={() => router.push("/")}
                 className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1"
               >
-                <IoLogOut /> Exit
+                <IoLogOut /> {t("exit")}
               </button>
             </div>
           </div>
@@ -203,9 +203,9 @@ export default function AdminLayout({
             <IoMenu size={24} />
           </button>
           <span className="font-semibold text-gray-900 dark:text-white">
-            Admin Dashboard
+            {t("dashboard")}
           </span>
-          <div className="w-8"></div> {/* Spacer */}
+          <div className="w-8"></div>
         </div>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

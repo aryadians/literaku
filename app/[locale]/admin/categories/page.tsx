@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { IoSearch, IoTrash, IoCreate, IoAdd, IoClose } from "react-icons/io5";
 import Swal from "sweetalert2";
-import { Modal } from "@/components/ui/Modal";
+import { motion } from "framer-motion";
 
 export default function AdminCategoriesPage() {
+  const t = useTranslations("admin.categories");
+  const commonT = useTranslations("common");
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -79,37 +82,37 @@ export default function AdminCategoriesPage() {
           .update(formData)
           .eq("id", currentCategory.id);
         if (error) throw error;
-        Swal.fire("Berhasil", "Kategori berhasil diperbarui", "success");
+        Swal.fire(commonT("success"), "", "success");
       } else {
         const { error } = await supabase.from("categories").insert([formData]);
         if (error) throw error;
-        Swal.fire("Berhasil", "Kategori berhasil ditambahkan", "success");
+        Swal.fire(commonT("success"), "", "success");
       }
       setIsModalOpen(false);
       fetchCategories();
     } catch (error: any) {
-      Swal.fire("Gagal", error.message, "error");
+      Swal.fire("Error", error.message, "error");
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
     const result = await Swal.fire({
-      title: "Hapus Kategori?",
-      text: `Hapus kategori "${name}"? Buku dengan kategori ini mungkin perlu diperbarui.`,
+      title: commonT("delete") + "?",
+      text: `${name}?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      confirmButtonText: "Ya, Hapus!",
+      confirmButtonText: commonT("delete"),
     });
 
     if (result.isConfirmed) {
       try {
         const { error } = await supabase.from("categories").delete().eq("id", id);
         if (error) throw error;
-        Swal.fire("Berhasil", "Kategori berhasil dihapus", "success");
+        Swal.fire(commonT("success"), "", "success");
         fetchCategories();
       } catch (error: any) {
-        Swal.fire("Gagal", error.message, "error");
+        Swal.fire("Error", error.message, "error");
       }
     }
   };
@@ -125,11 +128,11 @@ export default function AdminCategoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Kelola Kategori
+          {t("title")}
         </h1>
         <Button onClick={() => handleOpenModal()}>
           <IoAdd className="mr-2 h-5 w-5" />
-          Tambah Kategori
+          {t("add")}
         </Button>
       </div>
 
@@ -139,7 +142,7 @@ export default function AdminCategoriesPage() {
             <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari kategori..."
+              placeholder={t("search")}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -151,23 +154,23 @@ export default function AdminCategoriesPage() {
           <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400">
             <thead className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
               <tr>
-                <th className="px-6 py-3">Nama</th>
-                <th className="px-6 py-3">Slug</th>
-                <th className="px-6 py-3">Deskripsi</th>
-                <th className="px-6 py-3 text-right">Aksi</th>
+                <th className="px-6 py-3">{t("table.name")}</th>
+                <th className="px-6 py-3">{t("table.slug")}</th>
+                <th className="px-6 py-3">{t("table.description")}</th>
+                <th className="px-6 py-3 text-right">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center">
-                    Loading categories...
+                    {commonT("loading")}
                   </td>
                 </tr>
               ) : categories.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center">
-                    Tidak ada kategori ditemukan.
+                    No categories found.
                   </td>
                 </tr>
               ) : (
@@ -191,14 +194,14 @@ export default function AdminCategoriesPage() {
                       <button
                         onClick={() => handleOpenModal(cat)}
                         className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="Edit"
+                        title={commonT("edit")}
                       >
                         <IoCreate className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => handleDelete(cat.id, cat.name)}
                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Hapus"
+                        title={commonT("delete")}
                       >
                         <IoTrash className="w-5 h-5" />
                       </button>
@@ -211,7 +214,6 @@ export default function AdminCategoriesPage() {
         </div>
       </Card>
 
-      {/* Category Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <motion.div
@@ -221,7 +223,7 @@ export default function AdminCategoriesPage() {
           >
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                {isEditing ? "Edit Kategori" : "Tambah Kategori"}
+                {isEditing ? t("edit") : t("add")}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -232,7 +234,7 @@ export default function AdminCategoriesPage() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <Input
-                label="Nama Kategori"
+                label={t("table.name")}
                 placeholder="Contoh: Teknologi"
                 value={formData.name}
                 onChange={(e) => {
@@ -246,7 +248,7 @@ export default function AdminCategoriesPage() {
                 required
               />
               <Input
-                label="Slug"
+                label={t("table.slug")}
                 placeholder="teknologi"
                 value={formData.slug}
                 onChange={(e) =>
@@ -256,7 +258,7 @@ export default function AdminCategoriesPage() {
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Deskripsi
+                  {t("table.description")}
                 </label>
                 <textarea
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none resize-none"
@@ -274,10 +276,10 @@ export default function AdminCategoriesPage() {
                   className="flex-1"
                   onClick={() => setIsModalOpen(false)}
                 >
-                  Batal
+                  {commonT("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" className="flex-1">
-                  {isEditing ? "Simpan Perubahan" : "Tambah Kategori"}
+                  {isEditing ? commonT("save") : t("add")}
                 </Button>
               </div>
             </form>

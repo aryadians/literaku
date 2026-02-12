@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -11,6 +12,8 @@ import Swal from "sweetalert2";
 import { IoCloudUpload, IoImage, IoSave, IoArrowBack } from "react-icons/io5";
 
 export default function AdminEditBookPage() {
+  const t = useTranslations("admin.upload");
+  const commonT = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
@@ -31,7 +34,6 @@ export default function AdminEditBookPage() {
 
   const [newCoverFile, setNewCoverFile] = useState<File | null>(null);
 
-  // Check Admin & Fetch Data
   useEffect(() => {
     if (status === "loading") return;
 
@@ -44,13 +46,11 @@ export default function AdminEditBookPage() {
     async function init() {
       const supabase = createClient();
       
-      // 1. Fetch Categories
       const { data: cats } = await supabase
         .from("categories")
         .select("id, name");
       if (cats) setCategories(cats);
 
-      // 2. Fetch Book Data
       if (params.id) {
         const { data: book, error } = await supabase
           .from("books")
@@ -59,8 +59,7 @@ export default function AdminEditBookPage() {
           .single();
 
         if (error) {
-          console.error("Error fetching book:", error);
-          Swal.fire("Error", "Buku tidak ditemukan", "error");
+          Swal.fire("Error", "Book not found", "error");
           router.push("/admin/books");
         } else if (book) {
           setFormData({
@@ -87,7 +86,6 @@ export default function AdminEditBookPage() {
     try {
       let coverUrl = formData.cover_url;
 
-      // 1. Upload New Cover if selected
       if (newCoverFile) {
         const coverName = `${Date.now()}-${newCoverFile.name.replace(/\s/g, "_")}`;
         const { error: coverError } = await supabase.storage
@@ -103,7 +101,6 @@ export default function AdminEditBookPage() {
         coverUrl = publicUrl;
       }
 
-      // 2. Update Database
       const { error: dbError } = await supabase
         .from("books")
         .update({
@@ -118,32 +115,26 @@ export default function AdminEditBookPage() {
 
       if (dbError) throw dbError;
 
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Data buku berhasil diperbarui.",
-        icon: "success",
-      });
-
+      Swal.fire(commonT("success"), "", "success");
       router.push("/admin/books");
     } catch (error: any) {
-      console.error(error);
-      Swal.fire("Gagal", error.message || "Gagal menyimpan perubahan", "error");
+      Swal.fire("Error", error.message, "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (loading) return <div className="p-10 text-center">{commonT("loading")}</div>;
   if (!isAdmin) return null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" onClick={() => router.back()}>
-          <IoArrowBack className="mr-2" /> Kembali
+          <IoArrowBack className="mr-2" /> {commonT("cancel")}
         </Button>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Edit Buku
+          Edit Book
         </h1>
       </div>
 
@@ -152,7 +143,7 @@ export default function AdminEditBookPage() {
           <form onSubmit={handleUpdate} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
-                label="Judul Buku"
+                label={t("form.title")}
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
@@ -160,7 +151,7 @@ export default function AdminEditBookPage() {
                 required
               />
               <Input
-                label="Penulis"
+                label={t("form.author")}
                 value={formData.author}
                 onChange={(e) =>
                   setFormData({ ...formData, author: e.target.value })
@@ -172,7 +163,7 @@ export default function AdminEditBookPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Kategori
+                  {t("form.category")}
                 </label>
                 <select
                   className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 focus:border-brand-500 outline-none transition-all"
@@ -181,7 +172,7 @@ export default function AdminEditBookPage() {
                     setFormData({ ...formData, category_id: e.target.value })
                   }
                 >
-                  <option value="">Pilih Kategori</option>
+                  <option value="">Select Category</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -190,7 +181,7 @@ export default function AdminEditBookPage() {
                 </select>
               </div>
               <Input
-                label="Tahun Terbit"
+                label={t("form.year")}
                 type="number"
                 value={formData.year}
                 onChange={(e) =>
@@ -201,11 +192,10 @@ export default function AdminEditBookPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Deskripsi Singkat
+                {t("form.description")}
               </label>
               <textarea
                 className="w-full h-32 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 focus:border-brand-500 outline-none transition-all resize-none"
-                placeholder="Sinopsis buku..."
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -215,11 +205,10 @@ export default function AdminEditBookPage() {
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Update Sampul (Opsional)
+                Update Cover
               </h3>
 
               <div className="flex flex-col md:flex-row gap-6 items-start">
-                {/* Existing/Preview Cover */}
                 <div className="w-32 h-48 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 dark:border-gray-600">
                   {newCoverFile ? (
                     <img
@@ -240,7 +229,6 @@ export default function AdminEditBookPage() {
                   )}
                 </div>
 
-                {/* Upload input */}
                 <div className="flex-1 w-full">
                   <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-center cursor-pointer relative h-32 flex flex-col items-center justify-center">
                     <input
@@ -255,9 +243,8 @@ export default function AdminEditBookPage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {newCoverFile
                         ? newCoverFile.name
-                        : "Klik untuk ganti sampul"}
+                        : "Click to change cover"}
                     </p>
-                    <p className="text-xs text-gray-500">JPG/PNG Maks 5MB</p>
                   </div>
                 </div>
               </div>
@@ -270,11 +257,11 @@ export default function AdminEditBookPage() {
                 onClick={() => router.back()}
                 disabled={isSaving}
               >
-                Batal
+                {commonT("cancel")}
               </Button>
               <Button type="submit" variant="primary" isLoading={isSaving}>
                 <IoSave className="mr-2 h-5 w-5" />
-                Simpan Perubahan
+                {commonT("save")}
               </Button>
             </div>
           </form>
