@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { id as idLocale, enUS as enLocale } from "date-fns/locale";
@@ -21,8 +21,12 @@ import {
   IoChatbubble,
   IoSend,
   IoLockClosed,
+  IoChevronForward,
+  IoSparkles
 } from "react-icons/io5";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -42,6 +46,7 @@ interface ReviewDetail {
     name: string;
     avatar_url: string | null;
     bio: string | null;
+    username?: string;
   };
   categories: {
     name: string;
@@ -57,7 +62,6 @@ interface ReviewDetail {
       avatar_url: string | null;
     };
   }[];
-  local_comments?: any[]; // For instant UI update
 }
 
 export default function ReviewDetailPage() {
@@ -66,124 +70,40 @@ export default function ReviewDetailPage() {
   const params = useParams();
   const locale = useParams().locale as string;
   const currentLocale = locale === "id" ? idLocale : enLocale;
-  const { data: session } = useSession(); // Auth check
-  const router = useRouter(); // For redirecting to login
+  const { data: session } = useSession();
+  const router = useRouter();
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [commentText, setCommentText] = useState(""); // Form state
+  const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
-    if (params.slug) {
-      fetchReview(params.slug as string);
-    }
+    if (params.slug) fetchReview(params.slug as string);
   }, [params.slug]);
 
   useEffect(() => {
     if (review) {
       setLikeCount(review.review_likes?.length || 0);
-      // Check if user liked (requires user ID)
       if (session?.user?.id) {
-        const hasLiked = review.review_likes?.some(
-          (l) => (l.user_id || l.id) === session.user.id
-        );
-        setIsLiked(!!hasLiked);
+        setIsLiked(review.review_likes?.some((l) => (l.user_id || l.id) === session.user.id));
       }
     }
   }, [review, session]);
-
-  // Subscribe to Realtime Comments
-  useEffect(() => {
-    if (!review?.id) return;
-
-    // Use the client-side Supabase client
-    import("@/lib/supabase/client").then(({ createClient }) => {
-      const supabase = createClient();
-      const channel = supabase
-        .channel(`comments-${review.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "comments",
-            filter: `review_id=eq.${review.id}`,
-          },
-          async (payload) => {
-            // Fetch the full comment with profile data
-            const { data: newComment, error } = await supabase
-              .from("comments")
-              .select(
-                `
-                  id,
-                  content,
-                  created_at,
-                  profiles (
-                    name,
-                    avatar_url
-                  )
-                `,
-              )
-              .eq("id", payload.new.id)
-              .single();
-
-            if (!error && newComment) {
-              // Fetch full comment with profile to satisfy type
-              const { data: fullComment } = await supabase
-                .from("comments")
-                .select("*, profiles(name, avatar_url)")
-                .eq("id", newComment.id)
-                .single();
-
-              if (fullComment) {
-                setReview((prev) => {
-                  if (!prev) return null;
-                  // Prevent duplicate if we just added it manually via form
-                  if (
-                    prev.review_comments?.some((c) => c.id === fullComment.id)
-                  ) {
-                    return prev;
-                  }
-                  return {
-                    ...prev,
-                    review_comments: [
-                      fullComment,
-                      ...(prev.review_comments || []),
-                    ],
-                  };
-                });
-              }
-            }
-          },
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    });
-  }, [review?.id]);
 
   const handleShare = async () => {
     const url = window.location.href;
     const title = review?.title || "Literaku Review";
 
-    const { value: result } = await Swal.fire({
+    await Swal.fire({
       title: t("share.title"),
       html: `
         <div class="flex flex-col gap-3">
-          <a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-[#25D366]/10 text-[#25D366] font-bold hover:bg-[#25D366]/20 transition">
-            <i class="fab fa-whatsapp text-xl"></i> WhatsApp
+          <a href="https://wa.me/?text=${encodeURIComponent(title + " " + url)}" target="_blank" class="flex items-center gap-3 p-4 rounded-2xl bg-[#25D366]/10 text-[#25D366] font-black uppercase tracking-widest text-xs hover:bg-[#25D366]/20 transition-all">
+            WhatsApp
           </a>
-          <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-[#1877F2]/10 text-[#1877F2] font-bold hover:bg-[#1877F2]/20 transition">
-            <i class="fab fa-facebook text-xl"></i> Facebook
-          </a>
-          <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-black/5 text-black dark:text-white dark:bg-white/10 font-bold hover:bg-black/10 transition">
-             X (Twitter)
-          </a>
-          <button id="copyLinkBtn" class="flex items-center gap-3 p-3 rounded-lg bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition text-left">
+          <button id="copyLinkBtn" class="flex items-center justify-center gap-3 p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-black uppercase tracking-widest text-xs hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
              ${t("share.copyLink")}
           </button>
         </div>
@@ -191,18 +111,10 @@ export default function ReviewDetailPage() {
       showConfirmButton: false,
       showCloseButton: true,
       didOpen: () => {
-        const btn = document.getElementById("copyLinkBtn");
-        if (btn) {
-          btn.addEventListener("click", () => {
-            navigator.clipboard.writeText(url);
-            Swal.fire({
-              icon: "success",
-              title: t("share.success"),
-              timer: 1500,
-              showConfirmButton: false,
-            });
-          });
-        }
+        document.getElementById("copyLinkBtn")?.addEventListener("click", () => {
+          navigator.clipboard.writeText(url);
+          Swal.fire({ icon: "success", title: t("share.success"), timer: 1500, showConfirmButton: false });
+        });
       },
     });
   };
@@ -215,500 +127,295 @@ export default function ReviewDetailPage() {
         text: t("auth.likeText"),
         showCancelButton: true,
         confirmButtonText: t("auth.login"),
-        cancelButtonText: t("auth.cancel"),
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push("/auth/login");
-        }
-      });
+        confirmButtonColor: "#4F46E5"
+      }).then((res) => { if (res.isConfirmed) router.push("/auth/login"); });
       return;
     }
 
-    // Optimistic Update
-    const prevIsLiked = isLiked;
-    setIsLiked(!prevIsLiked);
-    setLikeCount(prev => prevIsLiked ? prev - 1 : prev + 1);
+    const prevLiked = isLiked;
+    setIsLiked(!prevLiked);
+    setLikeCount(prev => prevLiked ? prev - 1 : prev + 1);
 
     try {
-      const response = await fetch(`/api/reviews/${params.slug}/like`, {
-        method: "POST",
-      });
-
-      if (!response.ok) throw new Error("Failed to like");
-    } catch (error) {
-      console.error("Error liking review:", error);
-      // Revert on error
-      setIsLiked(prevIsLiked);
-      setLikeCount(prev => prevIsLiked ? prev + 1 : prev - 1);
+      await fetch(`/api/reviews/${params.slug}/like`, { method: "POST" });
+    } catch (e) {
+      setIsLiked(prevLiked);
+      setLikeCount(prev => prevLiked ? prev + 1 : prev - 1);
     }
   };
 
   const handleCommentSubmit = async () => {
-    if (!commentText.trim()) return;
-
-    if (!session) {
-      router.push("/auth/login");
-      return;
-    }
-
+    if (!commentText.trim() || !session) return;
     try {
-      const response = await fetch(`/api/reviews/${params.slug}/comments`, {
+      const res = await fetch(`/api/reviews/${params.slug}/comments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: commentText }),
       });
-
-      if (!response.ok) {
-        throw new Error("Gagal mengirim komentar");
+      if (res.ok) {
+        const newComment = await res.json();
+        setReview(prev => prev ? { ...prev, review_comments: [newComment, ...(prev.review_comments || [])] } : null);
+        setCommentText("");
+        Swal.fire({ toast: true, position: 'top-end', icon: "success", title: "Komentar terkirim", showConfirmButton: false, timer: 2000 });
       }
-
-      const newComment = await response.json();
-
-      setReview((prev) =>
-        prev
-          ? {
-              ...prev,
-              // Add to local_comments or review_comments depending on how you structure
-              // Here we add to review_comments directly since it comes from DB
-              review_comments: [newComment, ...(prev.review_comments || [])],
-            }
-          : null,
-      );
-
-      setCommentText("");
-
-      Swal.fire({
-        icon: "success",
-        title: tc("success"), // Use common success
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Terjadi kesalahan saat mengirim komentar.",
-      });
-    }
+    } catch (e) { console.error(e); }
   };
 
   const fetchReview = async (slug: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/reviews/${slug}`);
-
-      if (!response.ok) {
-        throw new Error("Review tidak ditemukan");
-      }
-
-      const data = await response.json();
+      const res = await fetch(`/api/reviews/${slug}`);
+      if (!res.ok) throw new Error("Review not found");
+      const data = await res.json();
       setReview(data.review);
-    } catch (err) {
-      console.error("Error fetching review:", err);
-      setError(tc("errorFetching"));
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (e) { setError(tc("errorFetching")); }
+    finally { setIsLoading(false); }
   };
 
-  if (isLoading) {
-    return <ReviewDetailSkeleton />;
-  }
-
-  if (error || !review) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-          {error || "Review tidak ditemukan"}
-        </h1>
-        <Link
-          href="/reviews"
-          className="text-brand-600 hover:underline flex items-center gap-2"
-        >
-          <IoArrowBack /> {t("hero.backToList")}
-        </Link>
-      </div>
-    );
-  }
+  if (isLoading) return <ReviewDetailSkeleton />;
+  if (error || !review) return <ReviewError error={error} />;
 
   return (
-    <article className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
-      {/* Hero Header with Blur Background */}
-      <div className="relative w-full min-h-[50vh] h-auto overflow-hidden pb-12 md:pb-0 bg-gray-900">
-        {/* Blurred Background Image */}
+    <article className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-32">
+      {/* Premium Hero Header */}
+      <div className="relative w-full min-h-[60vh] flex items-center overflow-hidden pt-20">
         <div className="absolute inset-0 z-0">
           {review.book_cover_url && (
-            <Image
-              src={review.book_cover_url}
-              alt={review.book_title}
-              fill
-              className="object-cover opacity-30 blur-xl scale-110"
-            />
+            <Image src={review.book_cover_url} alt="" fill className="object-cover opacity-20 blur-3xl scale-110" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 dark:from-gray-950 via-transparent to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900/80 to-gray-50 dark:to-gray-950" />
         </div>
 
-        {/* Content Overlay - Now Relative */}
-        <div className="relative z-10 flex items-center justify-center container-custom pt-24 pb-12 min-h-[50vh]">
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-8 w-full max-w-5xl">
-            {/* Book Cover */}
+        <div className="container-custom relative z-10 py-20">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-12 max-w-6xl mx-auto">
+            {/* Book Cover 3D */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative w-48 h-72 md:w-64 md:h-96 flex-shrink-0 rounded-lg shadow-2xl overflow-hidden border-4 border-white dark:border-gray-800 transform md:translate-y-12"
+              initial={{ opacity: 0, scale: 0.9, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="relative w-56 h-80 md:w-72 md:h-[450px] flex-shrink-0 rounded-[2.5rem] shadow-3xl overflow-hidden border-8 border-white dark:border-gray-800 transform md:translate-y-20 bg-gray-800"
             >
               {review.book_cover_url ? (
-                <Image
-                  src={review.book_cover_url}
-                  alt={review.book_title}
-                  fill
-                  className="object-cover"
-                />
+                <Image src={review.book_cover_url} alt={review.book_title} fill className="object-cover" />
               ) : (
-                <div className="w-full h-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
-                  <IoBook className="w-16 h-16 text-brand-500" />
-                </div>
+                <div className="w-full h-full flex items-center justify-center text-gray-600"><IoBook size={80} /></div>
               )}
             </motion.div>
 
-            {/* Title & Info */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-center md:text-left text-white pb-8 md:pb-0 flex-1"
-            >
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
-                {review.categories && (
-                  <span className="px-3 py-1 bg-brand-500 text-white text-sm font-bold rounded-full shadow-lg">
-                    {review.categories.name}
-                  </span>
-                )}
-                <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full text-yellow-400">
-                  <IoStar className="w-4 h-4" />
-                  <span className="font-bold text-white">
-                    {review.rating}/5
-                  </span>
-                </div>
-              </div>
-
-              <h1 className="text-3xl md:text-5xl font-black mb-2 leading-tight drop-shadow-lg">
-                {review.title}
-              </h1>
-              <h2 className="text-xl text-gray-200 font-medium mb-6 drop-shadow-md">
-                {t("hero.subtitle", {
-                  title: review.book_title,
-                  author: review.book_author,
-                })}
-              </h2>
-
-              {/* Reviewer Info */}
-              <div className="flex items-center justify-center md:justify-start gap-4">
-                <div className="flex items-center gap-3 bg-white/90 dark:bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-gray-200 dark:border-white/20 shadow-sm">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative border border-gray-100 dark:border-transparent">
-                    {review.profiles.avatar_url ? (
-                      <Image
-                        src={review.profiles.avatar_url}
-                        alt={review.profiles.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <IoPerson className="w-full h-full p-1 text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex flex-col items-start justify-center">
-                    <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider font-semibold">
-                      {t("hero.reviewedBy")}
-                    </p>
-                    <p className="text-sm md:text-base font-bold text-gray-900 dark:text-white drop-shadow-none dark:drop-shadow-md">
-                      {review.profiles?.name || "Anonymous"}
-                    </p>
+            {/* Info Section */}
+            <div className="flex-1 text-center md:text-left">
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-8">
+                  {review.categories && (
+                    <span className="px-5 py-1.5 bg-brand-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-glow-sm">
+                      {review.categories.name}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-yellow-400 border border-white/10">
+                    <IoStar className="animate-pulse" />
+                    <span className="font-black text-white text-xs">{review.rating} / 5</span>
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-4 bg-white/60 dark:bg-transparent px-3 py-1 rounded-full md:bg-transparent md:px-0">
-                  <span className="flex items-center gap-1 font-medium">
-                    <IoCalendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    {format(new Date(review.created_at), "d MMM yyyy", {
-                      locale: currentLocale,
-                    })}
-                  </span>
+                <h1 className="text-4xl md:text-7xl font-black text-white mb-4 leading-[0.9] tracking-tighter uppercase italic drop-shadow-2xl">
+                  {review.title}
+                </h1>
+                <p className="text-xl md:text-2xl text-gray-300 font-bold mb-10 tracking-tight">
+                  Ulasan buku <span className="text-brand-400">"{review.book_title}"</span> oleh {review.book_author}
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6">
+                  <Link href={`/profile/${review.profiles.username || review.profiles.name}`} className="flex items-center gap-4 bg-white dark:bg-gray-900 p-2 pr-6 rounded-[2rem] shadow-xl group transition-all hover:scale-105 active:scale-95 border border-white/10">
+                    <div className="w-12 h-12 rounded-[1.5rem] overflow-hidden relative border-2 border-brand-50 shadow-sm">
+                      {review.profiles.avatar_url ? (
+                        <Image src={review.profiles.avatar_url} alt={review.profiles.name} fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-brand-50 flex items-center justify-center text-brand-600 font-black">{review.profiles.name[0]}</div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Penulis Review</p>
+                      <p className="text-sm font-black text-gray-900 dark:text-white group-hover:text-brand-600 transition-colors">{review.profiles.name}</p>
+                    </div>
+                  </Link>
+                  <div className="flex items-center gap-2 text-gray-400 text-xs font-black uppercase tracking-widest">
+                    <IoCalendar className="text-brand-500" />
+                    {format(new Date(review.created_at), "d MMM yyyy", { locale: currentLocale })}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container-custom max-w-4xl pt-24 md:pt-20">
-        <div className="grid md:grid-cols-[1fr_300px] gap-12">
-          {/* Left Column: Review Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-8 md:p-10 mb-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden">
-              <div
-                className={`prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-brand-600 ${
-                  !session ? "max-h-[500px] overflow-hidden" : ""
-                }`}
-              >
-                <ReactMarkdown>
-                  {session
-                    ? review.content
-                    : review.content.split("\n").slice(0, 10).join("\n")}
-                </ReactMarkdown>
+      {/* Main Content Layout */}
+      <div className="container-custom max-w-6xl mt-40">
+        <div className="grid lg:grid-cols-[1fr_350px] gap-16">
+          {/* Review Article */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl p-10 md:p-16 mb-12 border border-gray-100 dark:border-gray-800 relative">
+              <div className="absolute -top-6 left-12 w-12 h-12 bg-brand-600 text-white flex items-center justify-center text-2xl rounded-2xl shadow-glow-sm">
+                <IoBook />
+              </div>
+              
+              <div className={`prose prose-xl dark:prose-invert max-w-none font-serif leading-loose ${!session ? "max-h-[600px] overflow-hidden" : ""}`}>
+                <ReactMarkdown>{session ? review.content : review.content.split("\n").slice(0, 12).join("\n")}</ReactMarkdown>
               </div>
 
-              {/* Login Wall UI */}
               {!session && (
-                <div className="absolute inset-x-0 bottom-0 h-[300px] bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent flex flex-col items-center justify-end pb-10 z-10">
-                  <div className="text-center p-6 max-w-md">
-                    <IoLockClosed className="w-12 h-12 text-brand-500 mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {t("loginWall.title")}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6">
-                      {t("loginWall.description")}
-                    </p>
-                    <button
-                      onClick={() => router.push("/auth/login")}
-                      className="px-8 py-3 bg-brand-600 text-white rounded-full font-bold text-lg hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 hover:-translate-y-1"
-                    >
-                      {t("loginWall.cta")}
-                    </button>
-                    <p className="mt-4 text-sm text-gray-500">
-                      {t("loginWall.noAccount")}{" "}
-                      <Link
-                        href="/auth/register"
-                        className="text-brand-600 hover:underline font-medium"
-                      >
-                        {t("loginWall.register")}
-                      </Link>
-                    </p>
+                <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-white dark:from-gray-900 via-white/95 dark:via-gray-900/95 to-transparent flex flex-col items-center justify-end pb-20 z-10 px-8">
+                  <div className="text-center p-10 bg-gray-50 dark:bg-gray-800/50 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-xl backdrop-blur-md max-w-md">
+                    <IoLockClosed size={48} className="text-brand-500 mx-auto mb-6 animate-bounce" />
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tighter italic">Lanjutkan Membaca</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">Buat akun gratis atau masuk untuk membaca ulasan lengkap dan berinteraksi dengan komunitas.</p>
+                    <div className="flex flex-col gap-3">
+                      <Button onClick={() => router.push("/auth/login")} className="w-full rounded-2xl h-14 font-black uppercase tracking-widest shadow-lg">Login Literaku</Button>
+                      <Link href="/auth/register" className="text-xs font-black text-brand-600 uppercase tracking-widest hover:underline mt-2">Daftar Sekarang</Link>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Engagement Actions (Only show/enable if logged in or show limited) */}
-            <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-              <div className="flex items-center gap-6">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 transition-colors group ${
-                    isLiked ? "text-red-500" : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  <motion.div
-                    whileTap={{ scale: 0.8 }}
-                    animate={isLiked ? { scale: [1, 1.4, 1] } : {}}
-                    className={`p-2 rounded-full transition-colors ${
-                      isLiked
-                        ? "bg-red-50 dark:bg-red-900/20"
-                        : "bg-gray-100 dark:bg-gray-800 group-hover:bg-red-50 dark:group-hover:bg-red-900/20"
-                    }`}
-                  >
-                    <IoHeart
-                      className={`w-6 h-6 ${isLiked ? "fill-current" : ""}`}
-                    />
-                  </motion.div>
-                  <span className="font-bold">
-                    {likeCount} {t("engagement.likes")}
-                  </span>
+            {/* Engagement Panel */}
+            <div className="flex flex-wrap items-center justify-between gap-6 p-8 bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-8">
+                <button onClick={handleLike} className={`flex items-center gap-3 transition-all group ${isLiked ? "text-red-500" : "text-gray-400"}`}>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all ${isLiked ? "bg-red-50 dark:bg-red-900/20" : "bg-gray-100 dark:bg-gray-800 group-hover:bg-red-50"}`}>
+                    <IoHeart className={isLiked ? "fill-current" : ""} />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black text-gray-900 dark:text-white leading-none mb-1">{likeCount}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Suka</p>
+                  </div>
                 </button>
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <IoEye className="w-5 h-5" />
-                  <span>
-                    {review.views} {t("engagement.views")}
-                  </span>
+                <div className="flex items-center gap-3 text-gray-400">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl">
+                    <IoEye />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black text-gray-900 dark:text-white leading-none mb-1">{review.views}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Dilihat</p>
+                  </div>
                 </div>
               </div>
-
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold hover:underline"
-              >
-                <IoShareSocial className="w-5 h-5" />
-                {t("engagement.share")}
+              <button onClick={handleShare} className="flex items-center gap-3 px-8 py-4 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-600 hover:text-white transition-all shadow-sm">
+                <IoShareSocial size={20} /> Bagikan
               </button>
             </div>
           </motion.div>
 
-          {/* Right Column: Sidebar */}
-          <motion.aside
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-8"
-          >
-            {/* Author Profile Card */}
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-800 sticky top-24">
-              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
-                {t("sidebar.aboutReviewer")}
-              </h3>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden relative">
-                  {review.profiles.avatar_url ? (
-                    <Image
-                      src={review.profiles.avatar_url}
-                      alt={review.profiles.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <IoPerson className="w-full h-full p-3 text-gray-400" />
-                  )}
+          {/* Sidebar */}
+          <aside className="space-y-10">
+            <div className="sticky top-28 space-y-10">
+              {/* About Reviewer Card */}
+              <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-800 overflow-hidden relative group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><IoPerson size={100} /></div>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-8 flex items-center gap-2">
+                  <IoSparkles className="text-brand-500" /> Profil Reviewer
+                </h3>
+                <div className="flex items-center gap-5 mb-8">
+                  <div className="w-20 h-20 rounded-[1.5rem] bg-gray-100 dark:bg-gray-800 relative overflow-hidden border-2 border-brand-50">
+                    {review.profiles.avatar_url ? (
+                      <Image src={review.profiles.avatar_url} alt={review.profiles.name} fill className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-brand-500 font-black text-2xl">{review.profiles.name[0]}</div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-gray-900 dark:text-white uppercase tracking-tighter italic text-xl leading-tight mb-1">{review.profiles.name}</h4>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kritikus Handal</p>
+                  </div>
                 </div>
-                <div>
-                  <Link
-                    href={`/profile/${review.profiles.name}`}
-                    className="text-lg font-bold text-gray-900 dark:text-white hover:text-brand-600 hover:underline"
-                  >
-                    {review.profiles.name}
-                  </Link>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t("sidebar.joined")} 2024
-                  </p>
-                </div>
+                {review.profiles.bio && (
+                  <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-8 italic">"{review.profiles.bio}"</p>
+                )}
+                <Link href={`/profile/${review.profiles.username || review.profiles.name}`} className="block">
+                  <button className="w-full py-4 bg-gray-900 dark:bg-gray-800 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-600 transition-all shadow-lg active:scale-95">Lihat Profil Lengkap</button>
+                </Link>
               </div>
-              {review.profiles.bio && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
-                  {review.profiles.bio}
-                </p>
-              )}
-              <button className="w-full py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors">
-                {t("sidebar.viewProfile")}
-              </button>
+              
+              {/* Promotion / Ads */}
+              <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                <h4 className="text-2xl font-black mb-4 uppercase tracking-tighter italic leading-none relative z-10">Buku Ini <br/>Tersedia Sekarang!</h4>
+                <p className="text-white/70 text-xs font-bold mb-8 leading-relaxed relative z-10">Baca gratis di Literaku Library dan buat catatanmu sendiri.</p>
+                <Link href="/library" className="relative z-10">
+                  <Button variant="secondary" className="w-full rounded-xl font-black uppercase tracking-widest text-[10px] h-12 shadow-2xl">Buka Library</Button>
+                </Link>
+              </div>
             </div>
-          </motion.aside>
+          </aside>
         </div>
 
-        {/* Full Width Comments Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-16 max-w-4xl mx-auto"
-        >
-          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-8 md:p-12 border border-gray-100 dark:border-gray-800">
-            <h3 className="text-3xl font-bold mb-10 flex items-center gap-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-6">
-              <IoChatbubble className="text-brand-500" />
-              {t("comments.title")}{" "}
-              <span className="text-lg font-normal text-gray-500">
-                (
-                {(review?.review_comments?.length || 0) +
-                  (review?.local_comments?.length || 0)}
-                )
-              </span>
+        {/* Full Width Comments Section - Premium */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-24 max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-[3.5rem] p-10 md:p-16 shadow-2xl border border-gray-100 dark:border-gray-800">
+            <h3 className="text-3xl font-black mb-12 flex items-center gap-5 text-gray-900 dark:text-white uppercase tracking-tighter italic">
+              <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 shadow-sm"><IoChatbubble /></div>
+              Diskusi Komunitas
+              <span className="text-sm font-black text-gray-400 ml-auto bg-gray-50 dark:bg-gray-800 px-4 py-1.5 rounded-xl uppercase tracking-widest">{(review?.review_comments?.length || 0)} PESAN</span>
             </h3>
 
-            <div className="space-y-8 mb-12">
-              {/* Combine Mock comments + Local Comments */}
-              {[
-                ...(review?.review_comments || []),
-                ...(review?.local_comments || []),
-              ].length > 0 ? (
-                [
-                  ...(review?.review_comments || []),
-                  ...(review?.local_comments || []),
-                ].map((comment: any) => (
-                  <div
-                    key={comment.id}
-                    className="flex gap-6 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
-                  >
-                    <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gray-200 overflow-hidden relative border-2 border-white dark:border-gray-700 shadow-sm">
+            <div className="space-y-10 mb-16">
+              {review?.review_comments && review.review_comments.length > 0 ? (
+                review.review_comments.map((comment: any, i: number) => (
+                  <motion.div key={comment.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="flex gap-6 group">
+                    <div className="flex-shrink-0 w-16 h-16 rounded-[1.5rem] bg-gray-100 dark:bg-gray-800 relative overflow-hidden border-4 border-white dark:border-gray-700 shadow-xl group-hover:scale-110 transition-transform">
                       {comment.profiles.avatar_url ? (
-                        <Image
-                          src={comment.profiles.avatar_url}
-                          alt={comment.profiles.name}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={comment.profiles.avatar_url} alt="" fill className="object-cover" />
                       ) : (
-                        <IoPerson className="w-full h-full p-3 text-gray-400" />
+                        <div className="w-full h-full flex items-center justify-center text-brand-500 font-black text-xl">{comment.profiles.name[0]}</div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
-                        <span className="font-bold text-gray-900 dark:text-white text-lg">
-                          {comment.profiles.name}
-                        </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full font-medium">
-                          {format(new Date(comment.created_at), "d MMMM yyyy", {
-                            locale: currentLocale,
-                          })}
-                        </span>
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-800/50 p-8 rounded-[2.5rem] relative group-hover:bg-white dark:group-hover:bg-gray-800 transition-all border border-transparent group-hover:border-gray-100">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                        <span className="font-black text-gray-900 dark:text-white text-lg uppercase tracking-tight italic">{comment.profiles.name}</span>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{format(new Date(comment.created_at), "d MMMM yyyy", { locale: currentLocale })}</span>
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">
-                        {comment.content}
-                      </p>
+                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg font-medium">{comment.content}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               ) : (
-                <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                  <p className="text-gray-500 italic text-lg">
-                    {t("comments.empty")}
-                  </p>
+                <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/30 rounded-[3rem] border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <p className="text-gray-400 font-black uppercase tracking-[0.2em] text-xs">Jadilah yang pertama memberikan ulasan!</p>
                 </div>
               )}
             </div>
 
-            {/* Comment Form */}
-            <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
+            {/* Comment Form - Refined */}
+            <div className="pt-12 border-t border-gray-100 dark:border-gray-800">
               {session ? (
-                <div className="flex gap-6 items-start">
-                  <div className="hidden md:block w-14 h-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex-shrink-0 shadow-lg" />
-                  <div className="flex-1 space-y-4">
-                    <label className="font-bold text-xl text-gray-800 dark:text-white block">
-                      {t("comments.form.title")}
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        placeholder={t("comments.form.placeholder")}
-                        className="w-full p-5 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-950 focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all resize-none min-h-[150px] shadow-inner text-gray-900 dark:text-white text-lg placeholder:text-gray-400"
-                      />
-                      <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
-                        {t("comments.form.markdown")}
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <button
-                        onClick={handleCommentSubmit}
-                        disabled={!commentText.trim()}
-                        className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-brand-500/30 disabled:opacity-70 disabled:hover:scale-100"
-                      >
-                        <IoSend className="w-5 h-5" />{" "}
-                        {t("comments.form.submit")}
-                      </button>
-                    </div>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-3 h-10 bg-brand-600 rounded-full" />
+                    <h4 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Tulis Komentar</h4>
+                  </div>
+                  <div className="relative group">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Apa pendapatmu tentang review ini?"
+                      className="w-full p-8 rounded-[2.5rem] border-2 border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 focus:bg-white dark:focus:bg-gray-900 focus:ring-8 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all resize-none min-h-[180px] shadow-inner text-gray-900 dark:text-white text-lg font-medium"
+                    />
+                    <div className="absolute bottom-6 right-8 text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Markdown didukung</div>
+                  </div>
+                  <div className="flex justify-end pt-4">
+                    <button onClick={handleCommentSubmit} disabled={!commentText.trim()} className="flex items-center gap-3 px-12 py-5 bg-brand-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-brand-700 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-brand-500/40 disabled:opacity-50 disabled:hover:scale-100">
+                      <IoSend size={20} /> Kirim Pesan
+                    </button>
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl p-10 text-center shadow-xl relative overflow-hidden group hover:shadow-2xl transition-all">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-purple-500" />
-                  <IoLockClosed className="w-12 h-12 mx-auto mb-4 text-gray-400 group-hover:text-white transition-colors" />
-                  <h4 className="text-2xl font-bold mb-3">
-                    {t("comments.guest.title")}
-                  </h4>
-                  <p className="text-gray-300 mb-8 max-w-lg mx-auto text-lg">
-                    {t("comments.guest.description")}
-                  </p>
-                  <button
-                    onClick={() => router.push("/login")}
-                    className="px-8 py-3 bg-white text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-                  >
-                    {t("comments.guest.cta")}
-                  </button>
+                <div className="bg-gray-900 rounded-[3rem] p-12 text-center text-white relative overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand-600/30 to-purple-600/30" />
+                  <div className="relative z-10 max-w-md mx-auto">
+                    <IoLockClosed size={48} className="mx-auto mb-6 text-brand-400" />
+                    <h4 className="text-2xl font-black mb-4 uppercase tracking-tighter italic">Diskusi Terkunci</h4>
+                    <p className="text-white/70 mb-10 font-bold text-sm leading-relaxed">Masuk ke Literaku untuk ikut serta dalam diskusi literasi dengan pembaca lainnya.</p>
+                    <Button onClick={() => router.push("/auth/login")} className="w-full rounded-2xl h-14 font-black uppercase tracking-widest text-xs shadow-xl">Masuk Sekarang</Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -719,18 +426,34 @@ export default function ReviewDetailPage() {
   );
 }
 
+function ReviewError({ error }: { error: string }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 bg-gray-50 dark:bg-gray-950">
+      <Card className="max-w-md w-full p-12 rounded-[3rem] shadow-3xl border-none">
+        <div className="text-7xl mb-8">🔭</div>
+        <h1 className="text-3xl font-black mb-4 text-gray-900 dark:text-white uppercase tracking-tighter italic">{error || "Review Tidak Ditemukan"}</h1>
+        <p className="text-gray-500 mb-10 font-medium leading-relaxed">Sepertinya ulasan yang kamu cari telah dipindahkan atau sudah tidak tersedia di perpustakaan kami.</p>
+        <Link href="/reviews">
+          <Button className="w-full rounded-2xl h-14 font-black uppercase tracking-widest text-xs shadow-glow-sm">Lihat Review Lainnya</Button>
+        </Link>
+      </Card>
+    </div>
+  );
+}
+
 function ReviewDetailSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="w-full h-[50vh] bg-gray-200 dark:bg-gray-900 animate-pulse" />
-      <div className="container-custom max-w-4xl -mt-32 relative z-10">
-        <div className="grid md:grid-cols-[1fr_300px] gap-12">
-          <div className="space-y-8">
-            <Skeleton className="h-12 w-3/4 mb-4" />
-            <Skeleton className="h-96 w-full rounded-2xl" />
+      <div className="w-full h-[60vh] bg-gray-200 dark:bg-gray-900 animate-pulse" />
+      <div className="container-custom max-w-6xl -mt-40 relative z-10">
+        <div className="grid lg:grid-cols-[1fr_350px] gap-16">
+          <div className="space-y-12">
+            <div className="h-[600px] bg-white dark:bg-gray-900 rounded-[3rem] animate-pulse shadow-xl" />
+            <div className="h-32 bg-white dark:bg-gray-900 rounded-3xl animate-pulse shadow-xl" />
           </div>
-          <div className="space-y-4">
-            <Skeleton className="h-64 w-full rounded-xl" />
+          <div className="space-y-10">
+            <div className="h-96 bg-white dark:bg-gray-900 rounded-3xl animate-pulse shadow-xl" />
+            <div className="h-64 bg-brand-600 rounded-3xl animate-pulse shadow-xl" />
           </div>
         </div>
       </div>

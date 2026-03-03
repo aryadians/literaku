@@ -9,7 +9,21 @@ import { ALL_BADGES } from "@/lib/badges";
 import { Button } from "@/components/ui/Button";
 import { useMemo } from "react";
 import Link from "next/link";
-import { IoBook, IoChatbubbles, IoHeart, IoRocket, IoFlame, IoBookmark, IoEye, IoTime, IoTrophy } from "react-icons/io5";
+import { 
+  IoBook, 
+  IoChatbubbles, 
+  IoHeart, 
+  IoRocket, 
+  IoFlame, 
+  IoBookmark, 
+  IoEye, 
+  IoTime, 
+  IoTrophy, 
+  IoChevronForward,
+  IoBrush,
+  IoSettingsOutline,
+  IoSparkles
+} from "react-icons/io5";
 import Swal from "sweetalert2";
 
 export default function DashboardPage() {
@@ -139,7 +153,7 @@ export default function DashboardPage() {
         if (res.ok) {
           const data = await res.json();
           setChallenge(prev => prev ? {...prev, target: data.target_books} : null);
-          Swal.fire('Berhasil!', 'Target membaca kamu telah diperbarui.', 'success');
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Target diperbarui', showConfirmButton: false, timer: 2000 });
         }
       } catch (e) {
         Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan target.', 'error');
@@ -155,241 +169,312 @@ export default function DashboardPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500" />
       </div>
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 pt-28">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-5xl mx-auto"
         >
-          {/* Modern Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden mb-10 border border-gray-100 dark:border-gray-700">
-            <div className="bg-gradient-to-r from-brand-600 to-orange-500 p-8 text-white relative">
+          {/* Header Profile Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-xl overflow-hidden mb-10 border border-gray-100 dark:border-gray-800">
+            <div className="bg-gradient-to-r from-brand-600 to-indigo-600 p-10 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-10">
-                <IoRocket className="w-32 h-32 rotate-12" />
+                <IoRocket className="w-48 h-48 rotate-12" />
               </div>
-              <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-                <div className="relative">
-                  {session.user?.image ? (
-                    <img
-                      src={session.user.image}
-                      alt={session.user.name || "User"}
-                      className="w-24 h-24 rounded-2xl border-4 border-white/30 shadow-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-2xl bg-white/20 flex items-center justify-center text-4xl border-4 border-white/30 shadow-lg">
-                      👋
-                    </div>
-                  )}
-                  <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-gray-900 text-[10px] font-black px-2 py-1 rounded-lg shadow-md border-2 border-white">
-                    LVL {level}
+              
+              <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                <div className="relative group">
+                  <div className="w-32 h-32 rounded-[2.5rem] bg-white/20 backdrop-blur-md flex items-center justify-center text-5xl border-4 border-white shadow-2xl overflow-hidden">
+                    {session.user?.image ? (
+                      <img src={session.user.image} alt="User" className="w-full h-full object-cover" />
+                    ) : "👋"}
                   </div>
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -bottom-2 -right-2 bg-yellow-400 text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-xl shadow-lg border-2 border-white"
+                  >
+                    LEVEL {level}
+                  </motion.div>
                 </div>
-                <div className="text-center md:text-left">
-                  <h1 className="text-3xl md:text-4xl font-black mb-1">
+                
+                <div className="text-center md:text-left flex-1">
+                  <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tighter uppercase italic">
                     Halo, {session.user?.name?.split(' ')[0] || "User"}!
                   </h1>
-                  <p className="text-white/80 font-medium mb-4">{session.user?.email}</p>
+                  <p className="text-white/70 font-bold mb-6 tracking-widest uppercase text-xs">{session.user?.email}</p>
                   
-                  {/* XP Bar */}
-                  <div className="w-full md:w-80 space-y-2">
-                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/90">
-                      <span>Progres Level</span>
-                      <span>{xp} / {level * 100} XP</span>
+                  {/* Progress Bar Premium */}
+                  <div className="w-full max-w-md space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Pengalaman Literasi</span>
+                      <span className="text-[10px] font-black text-white bg-white/20 px-2 py-0.5 rounded-full">{xp} / {level * 100} XP</span>
                     </div>
-                    <div className="h-3 bg-black/20 rounded-full overflow-hidden border border-white/10">
+                    <div className="h-4 bg-black/20 rounded-full p-1 border border-white/10 shadow-inner">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
-                        className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                      />
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] relative overflow-hidden"
+                      >
+                        <motion.div 
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        />
+                      </motion.div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Achievement Preview Bar */}
-            <div className="bg-gray-50 dark:bg-gray-900/50 px-8 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Koleksi Lencana:</span>
+            {/* Quick Stats & Badges Bar */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 px-10 py-6 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IoSparkles className="text-brand-500" /> Pencapaian:
+                </span>
                 <div className="flex -space-x-2">
-                  {[...Array(Math.min(earnedBadgesCount, 5))].map((_, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 border-2 border-brand-50 shadow-sm flex items-center justify-center text-sm">
+                  {[...Array(Math.min(earnedBadgesCount, 6))].map((_, i) => (
+                    <div key={i} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border-2 border-brand-50 dark:border-gray-700 shadow-sm flex items-center justify-center text-lg hover:-translate-y-1 transition-transform cursor-help" title="Lencana didapat">
                       ✨
                     </div>
                   ))}
-                  {earnedBadgesCount > 5 && (
-                    <div className="w-8 h-8 rounded-full bg-brand-500 text-white border-2 border-white shadow-sm flex items-center justify-center text-[10px] font-black">
-                      +{earnedBadgesCount - 5}
+                  {earnedBadgesCount > 6 && (
+                    <div className="w-10 h-10 rounded-xl bg-brand-600 text-white border-2 border-white shadow-lg flex items-center justify-center text-xs font-black">
+                      +{earnedBadgesCount - 6}
                     </div>
                   )}
                 </div>
               </div>
-              <Link href="/profile" className="text-xs font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest hover:underline">
-                Lihat Semua Lencana →
+              <Link href={`/profile/${session.user.username || session.user.id}`} className="text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest hover:underline flex items-center gap-2">
+                Lihat Profil Publik <IoChevronForward />
               </Link>
             </div>
           </div>
 
+          {/* Quick Actions Grid - Refined */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            {[
+              { label: "Tulis Review", icon: <IoChatbubbles />, href: "/reviews/create", color: "text-orange-600 bg-orange-50", delay: 0.1 },
+              { label: "Kelola Buku", icon: <IoBook />, href: "/dashboard/reviews", color: "text-blue-600 bg-blue-50", delay: 0.2 },
+              { label: "Buka Kanvas", icon: <IoBrush />, href: "/canvas", color: "text-purple-600 bg-purple-50", delay: 0.3 },
+              { label: "Pengaturan", icon: <IoSettingsOutline />, href: "/dashboard/profile", color: "text-gray-600 bg-gray-100", delay: 0.4 },
+            ].map((action, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: action.delay }}
+              >
+                <Link
+                  href={action.href}
+                  className="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center group transition-all hover:border-brand-500 hover:-translate-y-2 hover:shadow-brand-500/10"
+                >
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 ${action.color} dark:bg-gray-800 group-hover:scale-110 transition-transform`}>
+                    {action.icon}
+                  </div>
+                  <span className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-[0.2em]">{action.label}</span>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+
           {/* Main Layout Grid */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left: Reading Activity & Challenges */}
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid lg:grid-cols-3 gap-10">
+            {/* Left Column (Activities & Challenges) */}
+            <div className="lg:col-span-2 space-y-10">
               
-              {/* READING CHALLENGE WIDGET */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-card p-8 border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <IoTrophy className="w-24 h-24 text-brand-600" />
+              {/* READING CHALLENGE WIDGET - Refined */}
+              <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-xl p-10 border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <IoTrophy className="w-32 h-32 text-brand-600" />
                 </div>
+                
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                      <IoTrophy className="text-yellow-500" /> Reading Challenge {new Date().getFullYear()}
+                  <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center text-yellow-500">
+                        <IoTrophy />
+                      </div>
+                      Reading Challenge {new Date().getFullYear()}
                     </h2>
                     <button 
                       onClick={handleSetChallenge}
-                      className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-600 transition-colors"
+                      className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-brand-600 hover:text-white transition-all active:scale-95 shadow-sm"
                     >
                       {challenge?.target ? "Ubah Target" : "Set Target"}
                     </button>
                   </div>
 
                   {loadingChallenge ? (
-                    <div className="h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse" />
+                    <div className="h-32 bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] animate-pulse" />
                   ) : challenge?.target ? (
-                    <div className="space-y-4">
+                    <div className="space-y-8">
                       <div className="flex justify-between items-end">
-                        <div>
-                          <span className="text-4xl font-black text-brand-600">{challenge.completed}</span>
-                          <span className="text-gray-400 font-bold text-lg"> / {challenge.target} buku</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-6xl font-black text-brand-600 tracking-tighter">{challenge.completed}</span>
+                          <span className="text-gray-400 font-black text-xl uppercase tracking-widest">/ {challenge.target} BUKU</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-500 uppercase">
-                          {Math.round((challenge.completed / challenge.target) * 100)}% Selesai
-                        </span>
+                        <div className="text-right">
+                          <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Penyelesaian</span>
+                          <span className="text-2xl font-black text-gray-900 dark:text-white">
+                            {Math.round((challenge.completed / challenge.target) * 100)}%
+                          </span>
+                        </div>
                       </div>
-                      <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                      
+                      <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1.5 border border-gray-200 dark:border-gray-700 shadow-inner">
                         <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.min((challenge.completed / challenge.target) * 100, 100)}%` }}
-                          className="h-full bg-gradient-to-r from-brand-500 to-indigo-500 shadow-glow-sm"
+                          transition={{ duration: 1.5, ease: "anticipate" }}
+                          className="h-full bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 rounded-full shadow-glow-sm"
                         />
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                        {challenge.completed >= challenge.target 
-                          ? "Luar biasa! Kamu telah mencapai target tahun ini! 🏆" 
-                          : `Ayo semangat! Kamu butuh ${challenge.target - challenge.completed} buku lagi untuk mencapai target.`}
-                      </p>
+                      
+                      <div className="bg-brand-50 dark:bg-brand-900/10 p-6 rounded-[2rem] border border-brand-100 dark:border-brand-900/30">
+                        <p className="text-sm text-brand-700 dark:text-brand-300 font-bold leading-relaxed italic">
+                          {challenge.completed >= challenge.target 
+                            ? "Luar biasa! Kamu telah mencapai target tahun ini! Literasi adalah kunci peradaban. 👑" 
+                            : `Ayo semangat! Kamu butuh ${challenge.target - challenge.completed} buku lagi untuk mencapai targetmu.`}
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <div className="text-center py-6">
-                      <p className="text-gray-500 mb-4">Belum ada target membaca tahun ini.</p>
-                      <Button onClick={handleSetChallenge} size="sm" className="rounded-full">Mulai Tantangan Baru</Button>
+                    <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-[2.5rem] border-2 border-dashed border-gray-200 dark:border-gray-700">
+                      <p className="text-gray-500 dark:text-gray-400 mb-8 font-bold uppercase tracking-widest text-xs">Belum ada target membaca tahun ini</p>
+                      <Button onClick={handleSetChallenge} size="lg" className="rounded-2xl px-8 font-black uppercase tracking-widest text-xs shadow-xl active:scale-95">Mulai Tantangan Baru</Button>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-card p-8 border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                    <IoBookmark className="text-brand-500" /> Sedang Dibaca
+              {/* RECENTLY READ - Refined */}
+              <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-xl p-10 border border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-between mb-10">
+                  <h2 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600">
+                      <IoBookmark />
+                    </div>
+                    Sedang Dibaca
                   </h2>
-                  <Link href="/library" className="text-xs font-black text-brand-600 hover:underline uppercase tracking-widest">
+                  <Link href="/library" className="text-[10px] font-black text-brand-600 hover:underline uppercase tracking-widest bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-xl transition-all">
                     Lihat Semua
                   </Link>
                 </div>
 
                 {loadingHistory ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {[1, 2].map((i) => (
-                      <div key={i} className="h-24 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse" />
+                      <div key={i} className="h-32 bg-gray-50 dark:bg-gray-800 animate-pulse rounded-[2rem]" />
                     ))}
                   </div>
                 ) : readHistory.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <p className="text-gray-500 dark:text-gray-400 mb-6 font-medium">Kamu belum mulai membaca buku apa pun.</p>
+                  <div className="text-center py-16 bg-gray-50 dark:bg-gray-800/50 rounded-[3rem] border-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-bold uppercase tracking-widest text-xs">Kamu belum mulai membaca buku apa pun</p>
                     <Link href="/library">
-                      <Button className="rounded-full px-8 shadow-glow-sm">Jelajahi Perpustakaan</Button>
+                      <Button className="rounded-2xl px-10 h-14 font-black uppercase tracking-widest text-xs shadow-xl">Jelajahi Perpustakaan</Button>
                     </Link>
                   </div>
                 ) : (
-                  <div className="grid gap-4">
-                    {readHistory.map((item: any) => (
-                      <Link
+                  <div className="grid gap-6">
+                    {readHistory.map((item: any, i: number) => (
+                      <motion.div
                         key={item.books.id}
-                        href={`/read/${item.books.slug}`}
-                        className="flex items-center gap-5 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 group"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
                       >
-                        <div className="w-16 h-20 relative rounded-xl overflow-hidden flex-shrink-0 shadow-md transform group-hover:rotate-2 transition-transform">
-                          {item.books.cover_url ? (
-                            <img src={item.books.cover_url} alt={item.books.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-2xl">
-                              📖
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-black text-gray-900 dark:text-white truncate text-lg group-hover:text-brand-600 transition-colors mb-1">
-                            {item.books.title}
-                          </h4>
-                          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 truncate">
-                            {item.books.author}
-                          </p>
-                          <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                            <span className="flex items-center gap-1"><IoTime /> {new Date(item.last_read_at).toLocaleDateString()}</span>
+                        <Link
+                          href={`/read/${item.books.slug}`}
+                          className="flex items-center gap-6 p-6 rounded-[2.5rem] bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all border border-gray-100 dark:border-gray-800 hover:border-brand-200 group relative overflow-hidden"
+                        >
+                          <div className="w-20 h-28 relative rounded-2xl overflow-hidden flex-shrink-0 shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2 border-2 border-white dark:border-gray-700">
+                            {item.books.cover_url ? (
+                              <img src={item.books.cover_url} alt={item.books.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-3xl">📖</div>
+                            )}
                           </div>
-                        </div>
-                        <div className="hidden sm:block">
-                          <Button variant="ghost" size="sm" className="rounded-full">Lanjut Baca</Button>
-                        </div>
-                      </Link>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-[8px] font-black text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">Terakhir dibaca</span>
+                              <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
+                            </div>
+                            <h4 className="font-black text-gray-900 dark:text-white truncate text-xl uppercase tracking-tighter group-hover:text-brand-600 transition-colors mb-1">
+                              {item.books.title}
+                            </h4>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                              {item.books.author}
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              <IoTime className="text-brand-500" /> {new Date(item.last_read_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                          </div>
+                          
+                          <div className="hidden sm:block">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-500/30 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                              <IoChevronForward size={24} />
+                            </div>
+                          </div>
+                        </Link>
+                      </motion.div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Right: Stats Summary */}
-            <div className="space-y-8">
-              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-card p-8 border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-black mb-8 text-gray-900 dark:text-white uppercase tracking-tighter">Ringkasan Statistik</h2>
-                <div className="space-y-6">
+            {/* Right Column (Stats Summary) */}
+            <div className="space-y-10">
+              <div className="bg-white dark:bg-gray-900 rounded-[3.5rem] shadow-2xl p-10 border border-gray-100 dark:border-gray-800 sticky top-28">
+                <h2 className="text-xl font-black mb-10 text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-3">
+                  <div className="w-2 h-8 bg-brand-600 rounded-full" />
+                  Statistik
+                </h2>
+                
+                <div className="space-y-8">
                   {[
-                    { label: "Review Dibuat", value: stats.totalReviews, icon: <IoChatbubbles />, color: "text-blue-500 bg-blue-50" },
-                    { label: "Total Views", value: stats.totalViews, icon: <IoEye />, color: "text-accent-500 bg-accent-50" },
-                    { label: "Total Likes", value: stats.totalLikes, icon: <IoHeart />, color: "text-red-500 bg-red-50" },
-                    { label: "Buku Selesai", value: stats.booksRead, icon: <IoBook />, color: "text-green-500 bg-green-50" },
+                    { label: "Review Dibuat", value: stats.totalReviews, icon: <IoChatbubbles />, color: "text-blue-600 bg-blue-50" },
+                    { label: "Total Views", value: stats.totalViews, icon: <IoEye />, color: "text-purple-600 bg-purple-50" },
+                    { label: "Total Likes", value: stats.totalLikes, icon: <IoHeart />, color: "text-red-600 bg-red-50" },
+                    { label: "Buku Selesai", value: stats.booksRead, icon: <IoBook />, color: "text-green-600 bg-green-50" },
                   ].map((stat, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${stat.color} dark:bg-gray-700`}>
+                    <div key={i} className="flex items-center justify-between group cursor-default">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${stat.color} dark:bg-gray-800 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 shadow-sm`}>
                           {stat.icon}
                         </div>
-                        <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{stat.label}</span>
+                        <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">{stat.label}</span>
                       </div>
-                      <span className="text-xl font-black text-gray-900 dark:text-white">{stat.value}</span>
+                      <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">{stat.value}</span>
                     </div>
                   ))}
                 </div>
                 
-                <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700">
-                  <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 p-6 rounded-2xl border border-yellow-100 dark:border-yellow-900/20 text-center">
-                    <div className="text-3xl mb-2"><IoFlame className="inline text-orange-500" /></div>
-                    <div className="text-xs font-black uppercase tracking-widest text-orange-700 dark:text-orange-400 mb-1">XP Hari Ini</div>
-                    <div className="text-2xl font-black text-gray-900 dark:text-white">+{(stats.totalReviews * 5) % 100} XP</div>
+                <div className="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
+                  <div className="bg-gradient-to-br from-orange-500 to-red-600 p-8 rounded-[2.5rem] text-center text-white shadow-xl relative overflow-hidden group">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"
+                    />
+                    <div className="text-4xl mb-3 relative z-10"><IoFlame className="inline animate-bounce" /></div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 text-white/80 relative z-10">XP Hari Ini</div>
+                    <div className="text-3xl font-black relative z-10 tracking-tighter">+{(stats.totalReviews * 5) % 100} XP</div>
                   </div>
                 </div>
               </div>

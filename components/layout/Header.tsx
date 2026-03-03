@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -18,6 +18,7 @@ import {
   IoBrush,
   IoChevronDown,
   IoSearch,
+  IoSparkles,
 } from "react-icons/io5";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -27,10 +28,17 @@ import Image from "next/image";
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
@@ -51,115 +59,107 @@ export function Header() {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="sticky top-0 z-40 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800"
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
+        scrolled 
+          ? "bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl border-gray-200 dark:border-gray-800 shadow-glow-sm py-2" 
+          : "bg-transparent border-transparent py-4"
+      )}
     >
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="container-custom">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             href="/"
             prefetch={true}
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-3 group relative"
           >
             <motion.div
-              className="relative w-10 h-10"
-              whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-              transition={{ duration: 0.5 }}
+              className="relative w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:shadow-brand-500/40 transition-all"
+              whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
             >
               <Image
                 src="/icon.svg"
                 alt="Literaku"
                 fill
-                className="object-contain"
+                className="object-contain p-1.5 brightness-0 invert"
               />
             </motion.div>
-            <span className="text-xl font-bold gradient-text hidden sm:inline">
-              {t("common.appName")}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-white group-hover:text-brand-600 transition-colors">
+                {t("common.appName")}
+              </span>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-500 -mt-1 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1">
+                Platform Literasi
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                prefetch={true}
-                className={cn(
-                  "text-sm font-medium transition-colors relative",
-                  isActive(link.href)
-                    ? "text-brand-600 dark:text-brand-400"
-                    : "text-gray-600 dark:text-gray-300 hover:text-brand-500",
-                )}
-              >
-                {link.label}
-                {isActive(link.href) && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-brand-500"
-                  />
-                )}
-              </Link>
-            ))}
+          <div className="hidden lg:flex items-center gap-1 bg-gray-100/50 dark:bg-white/5 p-1 rounded-2xl border border-gray-200/50 dark:border-white/5 backdrop-blur-md">
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  prefetch={true}
+                  className={cn(
+                    "px-4 py-2 text-xs font-black uppercase tracking-widest transition-all rounded-xl relative",
+                    active
+                      ? "text-white bg-brand-600 shadow-md shadow-brand-500/20"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-800"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
 
-            {/* Search Input */}
-            <div className="relative group">
+          {/* Right Section */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Search - Desktop Refined */}
+            <div className="hidden xl:relative xl:group xl:block">
               <input
                 type="text"
                 placeholder={t("common.searchPlaceholder")}
-                className="w-32 focus:w-64 transition-all duration-300 pl-9 pr-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-gray-950 border focus:border-brand-500 rounded-full outline-none placeholder:text-gray-400 dark:text-white"
+                className="w-40 focus:w-64 transition-all duration-500 pl-10 pr-4 py-2 text-xs font-bold bg-gray-100 dark:bg-gray-800 border-none rounded-xl outline-none focus:ring-2 ring-brand-500/20 dark:text-white"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     const target = e.target as HTMLInputElement;
                     if (target.value.trim()) {
-                      router.push(
-                        `/reviews?search=${encodeURIComponent(target.value)}`,
-                      );
+                      router.push(`/reviews?search=${encodeURIComponent(target.value)}`);
                     }
                   }
                 }}
               />
-              <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             </div>
-          </div>
 
-          {/* Right Section */}
-          <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
+            <div className="flex items-center bg-gray-100/50 dark:bg-white/5 p-1 rounded-xl gap-1">
+              <LanguageSwitcher />
+              <DarkModeToggle />
+            </div>
 
-            {/* Dark Mode Toggle */}
-            <DarkModeToggle />
-
-            {/* Notification Bell */}
             {session && <NotificationBell />}
 
-            {/* Auth Buttons / User Menu - Desktop */}
-            <div className="hidden md:flex items-center gap-2 relative">
+            {/* User Menu */}
+            <div className="hidden md:block relative">
               {session ? (
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center gap-2 p-1 rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-brand-500 transition-all"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative">
+                    <div className="w-8 h-8 rounded-lg bg-brand-50 overflow-hidden relative border border-brand-100">
                       {session.user?.image ? (
-                        <Image
-                          src={session.user.image}
-                          alt={session.user.name || "User"}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={session.user.image} alt="User" fill className="object-cover" />
                       ) : (
-                        <IoPerson className="w-full h-full p-1.5 text-gray-400" />
+                        <IoPerson className="w-full h-full p-1.5 text-brand-500" />
                       )}
                     </div>
-                    <span className="text-sm font-medium max-w-[150px] truncate text-gray-700 dark:text-gray-200">
-                      {session.user?.username || session.user?.name}
-                    </span>
-                    <IoChevronDown
-                      className={`w-4 h-4 transition-transform text-gray-500 dark:text-gray-400 ${isUserMenuOpen ? "rotate-180" : ""}`}
-                    />
+                    <IoChevronDown className={cn("w-3 h-3 transition-transform text-gray-400 mr-1", isUserMenuOpen && "rotate-180")} />
                   </button>
 
                   <AnimatePresence>
@@ -168,52 +168,37 @@ export function Header() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
+                        className="absolute right-0 top-full mt-3 w-64 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50 p-2"
                       >
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                            {session.user?.name}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {session.user?.username ? `@${session.user.username}` : session.user?.email}
+                        <div className="p-4 bg-brand-50 dark:bg-brand-900/20 rounded-xl mb-2">
+                          <p className="text-sm font-black text-gray-900 dark:text-white truncate">{session.user?.name}</p>
+                          <p className="text-[10px] font-black text-brand-600 uppercase tracking-widest">
+                            {session.user?.role || "Pembaca"}
                           </p>
                         </div>
-                        <div className="p-2">
-                          <Link
-                            href="/profile"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <IoPerson className="w-4 h-4" /> {t("nav.profile")}
-                          </Link>
-                          <Link
-                            href="/dashboard"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <IoGrid className="w-4 h-4" /> {t("nav.dashboard")}
-                          </Link>
-                          <Link
-                            href="/reviews/create"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <IoCreate className="w-4 h-4" />{" "}
-                            {t("nav.writeReview")}
-                          </Link>
-                          <Link
-                            href="/canvas"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <IoBrush className="w-4 h-4" /> {t("nav.canvas")}
-                          </Link>
+                        
+                        <div className="space-y-1">
+                          {[
+                            { href: "/profile", icon: IoPerson, label: t("nav.profile") },
+                            { href: "/dashboard", icon: IoGrid, label: t("nav.dashboard") },
+                            { href: "/reviews/create", icon: IoCreate, label: t("nav.writeReview") },
+                            { href: "/canvas", icon: IoBrush, label: t("nav.canvas") },
+                          ].map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
+                              <item.icon size={16} className="text-brand-500" /> {item.label}
+                            </Link>
+                          ))}
+                          
                           <button
                             onClick={() => signOut()}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-2"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
-                            <IoLogOut className="w-4 h-4" /> {t("nav.logout")}
+                            <IoLogOut size={16} /> {t("nav.logout")}
                           </button>
                         </div>
                       </motion.div>
@@ -221,134 +206,63 @@ export function Header() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <>
-                  <Link href="/auth/login" prefetch={true}>
-                    <Button variant="ghost" size="sm">
-                      {t("nav.login")}
-                    </Button>
+                <div className="flex items-center gap-2">
+                  <Link href="/auth/login">
+                    <Button variant="ghost" size="sm" className="rounded-xl font-bold">Login</Button>
                   </Link>
-                  <Link href="/auth/register" prefetch={true}>
-                    <Button variant="primary" size="sm">
-                      {t("nav.register")}
-                    </Button>
+                  <Link href="/auth/register">
+                    <Button variant="primary" size="sm" className="rounded-xl font-bold shadow-glow-sm">Daftar</Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="lg:hidden p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
             >
-              {isMenuOpen ? (
-                <IoClose className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-              ) : (
-                <IoMenu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-              )}
+              {isMenuOpen ? <IoClose size={24} /> : <IoMenu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Refined */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden overflow-hidden"
+              className="lg:hidden bg-white dark:bg-gray-900 rounded-2xl mt-2 border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden"
             >
-              <div className="py-4 space-y-4">
+              <div className="p-4 space-y-2">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={cn(
-                      "block px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                      "block px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-colors",
                       isActive(link.href)
-                        ? "bg-brand-50 text-brand-600 dark:bg-brand-950/20 dark:text-brand-400"
-                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
+                        ? "bg-brand-600 text-white"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                     )}
                   >
                     {link.label}
                   </Link>
                 ))}
-                <div className="flex flex-col gap-2 px-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  {session ? (
-                    <>
-                      <div className="flex items-center gap-3 mb-2 px-2">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative">
-                          {session.user?.image ? (
-                            <Image
-                              src={session.user.image}
-                              alt={session.user.name || "User"}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <IoPerson className="w-full h-full p-2 text-gray-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">
-                            {session.user?.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {session.user?.email}
-                          </p>
-                        </div>
-                      </div>
-                      <Link
-                        href="/profile"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <IoPerson /> {t("nav.profile")}
-                      </Link>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <IoGrid /> {t("nav.dashboard")}
-                      </Link>
-                      <Link
-                        href="/reviews/create"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <IoCreate /> {t("nav.writeReview")}
-                      </Link>
-                      <button
-                        onClick={() => signOut()}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <IoLogOut /> {t("nav.logout")}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/auth/login"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Button variant="ghost" size="sm" className="w-full">
-                          {t("nav.login")}
-                        </Button>
-                      </Link>
-                      <Link
-                        href="/auth/register"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Button variant="primary" size="sm" className="w-full">
-                          {t("nav.register")}
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </div>
+                
+                {!session && (
+                  <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
+                    <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" size="sm" className="w-full rounded-xl">Login</Button>
+                    </Link>
+                    <Link href="/auth/register" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="primary" size="sm" className="w-full rounded-xl">Daftar</Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

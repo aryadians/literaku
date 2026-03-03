@@ -2,264 +2,147 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --brand-primary: 217 137 67;
+    --brand-glow: rgba(217, 137, 67, 0.4);
+  }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family:
-    var(--font-inter),
-    system-ui,
-    -apple-system,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Custom scrollbar */
+/* --- Premium Scrollbar --- */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d98943;
-  border-radius: 5px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c97238;
+  background: #d98943;
+  border: 0;
 }
 
-/* Dark mode scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-/* Prose styles for markdown content */
+/* --- Premium Typography (Prose) --- */
 .prose {
-  max-width: 65ch;
-  color: #1a1a1a;
+  max-width: 75ch;
+  line-height: 1.8;
 }
 
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4,
-.prose h5,
-.prose h6 {
-  font-family: var(--font-inter), sans-serif;
-  font-weight: 700;
-  margin-top: 2em;
-  margin-bottom: 1em;
-  line-height: 1.3;
-  color: #1a1a1a;
-}
-
-.prose h1 {
-  font-size: 2.25em;
-}
-
-.prose h2 {
-  font-size: 1.875em;
-}
-
-.prose h3 {
-  font-size: 1.5em;
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-style: italic;
 }
 
 .prose p {
-  font-family: var(--font-merriweather), Georgia, serif;
-  margin-bottom: 1.25em;
-  line-height: 1.75;
+  font-family: var(--font-lora), Georgia, serif;
+  margin-bottom: 1.5em;
+  color: #4b5563;
 }
 
-.prose a {
-  color: #d98943;
-  text-decoration: underline;
-  transition: color 0.2s;
-}
-
-.prose a:hover {
-  color: #c97238;
+.dark .prose p {
+  color: #94a3b8;
 }
 
 .prose blockquote {
   border-left: 4px solid #d98943;
-  padding-left: 1em;
+  background: #fdf8f3;
+  padding: 2rem;
+  border-radius: 0 2rem 2rem 0;
   font-style: italic;
-  color: hsl(var(--muted-foreground));
-  margin: 1.5em 0;
+  font-weight: 500;
 }
 
-.prose code {
-  background: hsl(var(--muted));
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-size: 0.875em;
+.dark .prose blockquote {
+  background: #1e293b;
+  border-color: #e4a468;
 }
 
-.prose pre {
-  background: hsl(var(--muted));
-  padding: 1em;
-  border-radius: 0.5em;
-  overflow-x: auto;
-  margin: 1.5em 0;
-}
-
-.prose ul,
-.prose ol {
-  padding-left: 1.5em;
-  margin-bottom: 1.25em;
-}
-
-.prose li {
-  margin-bottom: 0.5em;
-}
-
-.prose img {
-  border-radius: 0.5rem;
-  max-width: 100%;
-  height: auto;
-  margin: 1.5em 0;
-}
-
-/* Utility classes */
+/* --- Utility Classes --- */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .gradient-text {
-    background: linear-gradient(135deg, #d98943 0%, #c97238 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .card-glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .dark .card-glass {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
   .container-custom {
-    max-width: 1280px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    @apply max-w-7xl mx-auto px-6 sm:px-10 lg:px-12;
   }
 
-  @media (min-width: 640px) {
-    .container-custom {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
+  .shadow-glow-sm {
+    box-shadow: 0 0 20px rgba(217, 137, 67, 0.15);
   }
 
-  @media (min-width: 1024px) {
-    .container-custom {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
+  .shadow-glow-md {
+    box-shadow: 0 0 40px rgba(217, 137, 67, 0.25);
+  }
+
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+
+  .card-3d-effect {
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .bg-gradient-warm {
+    background: radial-gradient(circle at top right, #fdf8f3, #ffffff);
+  }
+
+  .dark .bg-gradient-warm {
+    background: radial-gradient(circle at top right, #0f172a, #020617);
+  }
+
+  .glass-effect {
+    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border border-white/20 dark:border-white/5;
+  }
+
+  .text-gradient-premium {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-brand-600 to-indigo-600 dark:from-white dark:via-brand-400 dark:to-indigo-400;
   }
 }
 
-/* Component base styles - using standard CSS instead of @layer for Tailwind v4 */
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+/* React Icons fix for consistent sizing */
+svg {
+  display: inline-block;
 }
 
-.btn-primary {
-  background-color: #d98943;
-  color: white;
+/* Custom SweetAlert2 Styling to match premium theme */
+.swal2-popup {
+  border-radius: 2.5rem !important;
+  font-family: var(--font-plus-jakarta) !important;
+  padding: 2rem !important;
 }
 
-.btn-primary:hover {
-  background-color: #c97238;
-  box-shadow: 0 0 20px rgba(217, 137, 67, 0.4);
-}
-
-.btn-primary:active {
-  transform: scale(0.95);
-}
-
-.btn-secondary {
-  background-color: #0ea5e9;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #0284c7;
-}
-
-.btn-secondary:active {
-  transform: scale(0.95);
-}
-
-.btn-ghost {
-  background-color: transparent;
-  color: #a75a30;
-}
-
-.btn-ghost:hover {
-  background-color: #fdf8f3;
-}
-
-.btn-ghost:active {
-  transform: scale(0.95);
-}
-
-.input-field {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.input-field:focus {
-  border-color: #d98943;
-  ring: 2px;
-  ring-color: rgba(217, 137, 67, 0.2);
-}
-
-.card {
-  background-color: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s;
-}
-
-.card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.dark .card {
-  background-color: #1f2937;
+.swal2-confirm {
+  border-radius: 1.25rem !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 1rem 2.5rem !important;
 }
