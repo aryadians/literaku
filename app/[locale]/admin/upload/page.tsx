@@ -38,10 +38,18 @@ export default function AdminUploadPage() {
   useEffect(() => {
     if (status === "loading") return;
 
+    // Log for debugging
+    console.log("Current Session User:", session?.user);
+    console.log("Current Role:", session?.user?.role);
+
     if (session?.user?.role === "admin") {
       setIsAdmin(true);
     } else {
-      router.push("/");
+      // Only redirect if NOT currently uploading
+      if (!isUploading) {
+        console.warn("Not an admin, redirecting to homepage...");
+        router.push("/");
+      }
     }
     
     async function fetchCategories() {
@@ -52,7 +60,7 @@ export default function AdminUploadPage() {
 
     fetchCategories();
     setIsLoading(false);
-  }, [session, status, router]);
+  }, [session, status, router, isUploading]);
 
   const handleUpload = async (e: React.FormEvent) => {
     const supabase = createClient();
@@ -108,28 +116,31 @@ export default function AdminUploadPage() {
         cover_url: coverUrl,
         pdf_url: pdfUrl,
         slug: slug,
+        uploaded_by: session?.user?.id,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database Insertion Error:", dbError);
+        throw dbError;
+      }
 
-      Swal.fire(commonT("success"), "", "success");
+      await Swal.fire(commonT("success"), "", "success");
 
       router.push("/admin/books");
     } catch (error: any) {
-      console.error(error);
+      console.error("Upload process error:", error);
       Swal.fire(
         "Error",
         error.message || "Upload failed",
         "error",
       );
-    } finally {
-      setIsUploading(false);
+      setIsUploading(false); // Reset if failed
     }
   };
 
   if (isLoading) return <div className="p-10 text-center">{commonT("loading")}</div>;
 
-  if (!isAdmin) return null;
+  if (!isAdmin && !isUploading) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">

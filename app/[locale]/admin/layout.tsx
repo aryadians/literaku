@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
 import {
   IoLibrary,
   IoPeople,
@@ -29,11 +28,19 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Check Admin Status
+  // Derive admin status and loading state
+  const { isAdmin, isLoading } = useMemo(() => {
+    if (status === "loading") return { isAdmin: false, isLoading: true };
+    if (!session?.user) return { isAdmin: false, isLoading: false };
+    return { 
+      isAdmin: session.user.role === "admin", 
+      isLoading: false 
+    };
+  }, [session, status]);
+
+  // Handle Redirection separately
   useEffect(() => {
     if (status === "loading") return;
 
@@ -42,12 +49,12 @@ export default function AdminLayout({
       return;
     }
 
-    if (session.user.role === "admin") {
-      setIsAdmin(true);
-    } else {
-      router.push("/");
+    if (session.user.role !== "admin") {
+      const timeout = setTimeout(() => {
+        router.push("/");
+      }, 500);
+      return () => clearTimeout(timeout);
     }
-    setIsLoading(false);
   }, [session, status, router]);
 
   if (isLoading) {

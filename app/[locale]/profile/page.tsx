@@ -254,7 +254,11 @@ export default function ProfilePage() {
                   </span>
                   <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest">
                     <IoCalendar className="text-brand-500" />
-                    Bergabung {new Date(profile.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                    {profile?.created_at || profile?.updated_at ? (
+                      <>Bergabung {new Date(profile.created_at || profile.updated_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</>
+                    ) : (
+                      <>User Baru</>
+                    )}
                   </div>
                 </div>
               </motion.div>
