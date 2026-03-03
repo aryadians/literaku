@@ -198,6 +198,7 @@ export default function ReaderInterface({ book }: { book: any }) {
         {/* Notes Sidebar (Mobile: Overlay, Desktop: Push/Slide) */}
         <ReadingNotes
           bookSlug={book.slug}
+          bookId={book.id}
           isOpen={isNotesOpen}
           onClose={() => setIsNotesOpen(false)}
         />
