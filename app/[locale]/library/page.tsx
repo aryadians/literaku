@@ -4,6 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaStar, FaSearch, FaFilter, FaBookOpen } from "react-icons/fa";
 import { IoBook } from "react-icons/io5";
+import { AddToCollectionButton } from "@/components/ui/AddToCollectionButton";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function generateMetadata({
   params,
@@ -28,6 +31,7 @@ export default async function LibraryPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "library" });
   const supabase = await createClient();
+  const session = await getServerSession(authOptions);
   const { category: categoryFilter, search: searchFilter } = await searchParams;
 
   // 1. Fetch Categories for Filter
@@ -45,18 +49,8 @@ export default async function LibraryPage({
     { count: "exact" },
   );
 
-  // Server-side filtering
   if (categoryFilter) {
-    // We need to filter by category slug.
-    // Since it's a relation (categories.slug), we use !inner to filter by related table
     query = query.eq("categories.slug", categoryFilter);
-    // Note: If using simple foreign key 'category_id', we could just use .eq('category_id', id)
-    // But we are filtering by slug, so we rely on the relation filter.
-    // However, Supabase inner join filtering slightly changes the data structure or requires specific syntax.
-    // A simpler way often used is filtering by the foreign key column if we knew the ID,
-    // but here we only have slug.
-    // Let's stick to the relational filter syntax:
-    // .not('categories', 'is', null) // ensures inner join if needed, but .eq on inner table usually implies it
   }
 
   if (searchFilter) {
@@ -72,9 +66,6 @@ export default async function LibraryPage({
   if (error) {
     console.error("Error fetching library:", error);
   }
-
-  // Featured book (latest)
-  // const featuredBook = books[0];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans text-gray-900 dark:text-gray-100 pb-20">
@@ -185,33 +176,42 @@ export default async function LibraryPage({
               {books.map((book: any) => (
                 <div key={book.id} className="group flex flex-col">
                   {/* Book Card */}
-                  <Link
-                    href={`/read/${book.slug}`}
-                    className="relative block aspect-[2/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-gray-200 dark:bg-gray-800 mb-4 group-hover:-translate-y-2 card-3d-effect"
-                  >
-                    {book.cover_url ? (
-                      <Image
-                        src={book.cover_url}
-                        alt={book.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 p-4 text-center">
-                        <IoBook className="w-12 h-12 mb-2" />
-                        <span className="text-xs font-semibold">
-                          {book.title}
-                        </span>
+                  <div className="relative mb-4">
+                    <Link
+                      href={`/read/${book.slug}`}
+                      className="relative block aspect-[2/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-gray-200 dark:bg-gray-800 group-hover:-translate-y-2 card-3d-effect"
+                    >
+                      {book.cover_url ? (
+                        <Image
+                          src={book.cover_url}
+                          alt={book.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 p-4 text-center">
+                          <IoBook className="w-12 h-12 mb-2" />
+                          <span className="text-xs font-semibold">
+                            {book.title}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                        <button className="w-full py-2 bg-brand-600 text-white text-sm font-bold rounded-lg shadow-lg">
+                          {t("card.read")}
+                        </button>
+                      </div>
+                    </Link>
+                    
+                    {/* Add to Collection Button - Floating */}
+                    {session && (
+                      <div className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <AddToCollectionButton bookId={book.id} />
                       </div>
                     )}
-
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
-                      <button className="w-full py-2 bg-brand-600 text-white text-sm font-bold rounded-lg shadow-lg">
-                        {t("card.read")}
-                      </button>
-                    </div>
-                  </Link>
+                  </div>
 
                   {/* Info */}
                   <div className="space-y-1">

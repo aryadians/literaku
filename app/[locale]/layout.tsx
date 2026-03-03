@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   title: "Literaku - Jejak Literasi, Catatan Bacaan",
   description:
     "Platform berbagi review dan catatan bacaan untuk para pecinta buku",
+  manifest: "/manifest.json",
+  themeColor: "#4f46e5",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Literaku",
+  },
 };
 
 export default async function RootLayout({

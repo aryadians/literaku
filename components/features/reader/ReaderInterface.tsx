@@ -12,6 +12,8 @@ import {
   IoChevronBack,
   IoMenu,
   IoBookmark,
+  IoTimeOutline,
+  IoCheckmarkCircleOutline,
 } from "react-icons/io5";
 import { useSession } from "next-auth/react";
 import { ReadingNotes } from "./ReadingNotes";
@@ -19,8 +21,10 @@ import { ReadingNotes } from "./ReadingNotes";
 export default function ReaderInterface({ book }: { book: any }) {
   const { data: session } = useSession();
   const supabase = createClient();
+  const [readingStatus, setReadingStatus] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  // Track History on Mount
+  // Track History on Mount and Fetch Status
   useEffect(() => {
     if (session?.user?.email && book?.id) {
       const recordHistory = async () => {
@@ -44,8 +48,40 @@ export default function ReaderInterface({ book }: { book: any }) {
         }
       };
       recordHistory();
+      
+      // Fetch current reading status
+      const fetchStatus = async () => {
+        try {
+          const res = await fetch(`/api/books/${book.slug}/status`);
+          if (res.ok) {
+            const data = await res.json();
+            setReadingStatus(data.status);
+          }
+        } catch (error) {
+          console.error("Failed to fetch reading status");
+        }
+      };
+      fetchStatus();
     }
   }, [session, book]);
+
+  const handleStatusChange = async (newStatus: string | null) => {
+    setIsUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/books/${book.slug}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setReadingStatus(newStatus);
+      }
+    } catch (error) {
+      console.error("Failed to update status");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
@@ -69,6 +105,28 @@ export default function ReaderInterface({ book }: { book: any }) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Status Dropdown */}
+          {session && (
+            <div className="relative group hidden sm:block">
+              <select
+                value={readingStatus || ""}
+                onChange={(e) => handleStatusChange(e.target.value || null)}
+                disabled={isUpdatingStatus}
+                className={`p-2 rounded-lg bg-gray-800 text-sm font-medium border border-gray-700 outline-none cursor-pointer appearance-none pr-8 ${
+                  readingStatus === "finished" ? "text-green-400 border-green-800" :
+                  readingStatus === "reading" ? "text-brand-400 border-brand-800" :
+                  readingStatus === "want_to_read" ? "text-yellow-400 border-yellow-800" :
+                  "text-gray-300"
+                }`}
+              >
+                <option value="">Status Bacaan</option>
+                <option value="want_to_read">Ingin Dibaca</option>
+                <option value="reading">Sedang Dibaca</option>
+                <option value="finished">Selesai Dibaca</option>
+              </select>
+            </div>
+          )}
+
           {/* Notes Toggle */}
           <button
             onClick={() => setIsNotesOpen(!isNotesOpen)}
@@ -85,10 +143,11 @@ export default function ReaderInterface({ book }: { book: any }) {
           {/* Finish & Review */}
           <Link
             href={`/reviews/create?book_id=${book.id}`}
+            onClick={() => handleStatusChange("finished")}
             className="p-2 rounded-lg bg-green-600 hover:bg-green-700 transition-colors text-white flex items-center gap-2 text-sm font-medium"
           >
             <IoCheckbox className="w-4 h-4" />
-            <span className="hidden sm:inline">Selesai & Review</span>
+            <span className="hidden lg:inline">Selesai & Review</span>
           </Link>
 
           {/* Download */}

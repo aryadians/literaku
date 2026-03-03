@@ -9,7 +9,8 @@ import { ALL_BADGES } from "@/lib/badges";
 import { Button } from "@/components/ui/Button";
 import { useMemo } from "react";
 import Link from "next/link";
-import { IoBook, IoChatbubbles, IoHeart, IoRocket, IoFlame, IoBookmark, IoEye, IoTime } from "react-icons/io5";
+import { IoBook, IoChatbubbles, IoHeart, IoRocket, IoFlame, IoBookmark, IoEye, IoTime, IoTrophy } from "react-icons/io5";
+import Swal from "sweetalert2";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -24,6 +25,10 @@ export default function DashboardPage() {
   });
   const [readHistory, setReadHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  
+  // Challenge State
+  const [challenge, setChallenge] = useState<{target: number, completed: number, year: number} | null>(null);
+  const [loadingChallenge, setLoadingChallenge] = useState(true);
 
   // Level & XP Logic
   const xp = (stats.totalReviews * 20) + (stats.booksRead * 10) + (stats.totalLikes * 5);
@@ -43,63 +48,104 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (session?.user?.email) {
+      if (session?.user?.id) {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        
+        // 1. Fetch Review Stats
+        const { data: reviewsData } = await supabase
+          .from("book_reviews")
+          .select("id, views, category_id")
+          .eq("user_id", session.user.id);
 
-        if (user) {
-          // 1. Fetch Review Stats
-          const { data: reviewsData } = await supabase
-            .from("book_reviews")
-            .select("id, views, category_id")
-            .eq("user_id", user.id);
-
-          if (reviewsData) {
-            const revIds = reviewsData.map(r => r.id);
-            let likesCount = 0;
-            if (revIds.length > 0) {
-              const { count } = await supabase
-                .from("review_likes")
-                .select("*", { count: "exact", head: true })
-                .in("review_id", revIds);
-              likesCount = count || 0;
-            }
-
-            const { count: commCount } = await supabase
-              .from("review_comments")
+        if (reviewsData) {
+          const revIds = reviewsData.map(r => r.id);
+          let likesCount = 0;
+          if (revIds.length > 0) {
+            const { count } = await supabase
+              .from("review_likes")
               .select("*", { count: "exact", head: true })
-              .eq("user_id", user.id);
-
-            const { count: historyCount } = await supabase
-              .from("read_history")
-              .select("*", { count: "exact", head: true })
-              .eq("user_id", user.id);
-
-            setStats({
-              totalReviews: reviewsData.length,
-              totalViews: reviewsData.reduce((acc, curr) => acc + (curr.views || 0), 0),
-              totalLikes: likesCount,
-              booksRead: historyCount || 0,
-              commentsMade: commCount || 0,
-              categoriesCount: new Set(reviewsData.map(r => r.category_id)).size
-            });
+              .in("review_id", revIds);
+            likesCount = count || 0;
           }
 
-          // 2. Fetch Reading History
-          const { data: historyData } = await supabase
-            .from("read_history")
-            .select(`last_read_at, books (id, title, slug, cover_url, author)`)
-            .eq("user_id", user.id)
-            .order("last_read_at", { ascending: false })
-            .limit(3);
-          
-          setReadHistory(historyData || []);
-          setLoadingHistory(false);
+          const { count: commCount } = await supabase
+            .from("review_comments")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", session.user.id);
+
+          const { count: historyCount } = await supabase
+            .from("reading_status")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", session.user.id)
+            .eq("status", "finished");
+
+          setStats({
+            totalReviews: reviewsData.length,
+            totalViews: reviewsData.reduce((acc, curr) => acc + (curr.views || 0), 0),
+            totalLikes: likesCount,
+            booksRead: historyCount || 0,
+            commentsMade: commCount || 0,
+            categoriesCount: new Set(reviewsData.map(r => r.category_id)).size
+          });
         }
+
+        // 2. Fetch Reading History
+        const { data: historyData } = await supabase
+          .from("read_history")
+          .select(`last_read_at, books (id, title, slug, cover_url, author)`)
+          .eq("user_id", session.user.id)
+          .order("last_read_at", { ascending: false })
+          .limit(3);
+        
+        setReadHistory(historyData || []);
+        setLoadingHistory(false);
+
+        // 3. Fetch Challenge
+        try {
+          const res = await fetch('/api/stats/challenges');
+          if (res.ok) {
+            const data = await res.json();
+            setChallenge(data);
+          }
+        } catch (e) { console.error(e); }
+        setLoadingChallenge(false);
       }
     }
     if (status === "authenticated") fetchData();
   }, [session, status]);
+
+  const handleSetChallenge = async () => {
+    const { value: target } = await Swal.fire({
+      title: 'Target Membaca Tahunan',
+      input: 'number',
+      inputLabel: `Berapa buku yang ingin kamu baca di tahun ${new Date().getFullYear()}?`,
+      inputValue: challenge?.target || 12,
+      showCancelButton: true,
+      confirmButtonColor: '#4F46E5',
+      inputValidator: (value) => {
+        if (!value || parseInt(value) < 1) {
+          return 'Masukkan angka minimal 1'
+        }
+      }
+    });
+
+    if (target) {
+      try {
+        const res = await fetch('/api/stats/challenges', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: parseInt(target) })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setChallenge(prev => prev ? {...prev, target: data.target_books} : null);
+          Swal.fire('Berhasil!', 'Target membaca kamu telah diperbarui.', 'success');
+        }
+      } catch (e) {
+        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan target.', 'error');
+      }
+    }
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -197,32 +243,64 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Actions Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            {[
-              { label: "Tulis Review", icon: "📝", href: "/dashboard/reviews/new", color: "bg-orange-50 text-orange-600 dark:bg-orange-950/20" },
-              { label: "Review Saya", icon: "📚", href: "/dashboard/reviews", color: "bg-blue-50 text-blue-600 dark:bg-blue-950/20" },
-              { label: "Buka Kanvas", icon: "🎨", href: "/canvas", color: "bg-purple-50 text-purple-600 dark:bg-purple-950/20" },
-              { label: "Edit Profil", icon: "⚙️", href: "/dashboard/profile", color: "bg-gray-50 text-gray-600 dark:bg-gray-950/20" },
-            ].map((action, i) => (
-              <motion.a
-                key={i}
-                href={action.href}
-                whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center text-center group transition-all hover:shadow-lg hover:border-brand-200"
-              >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3 ${action.color} group-hover:scale-110 transition-transform`}>
-                  {action.icon}
-                </div>
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight">{action.label}</span>
-              </motion.a>
-            ))}
-          </div>
-
           {/* Main Layout Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left: Reading Activity (Spans 2) */}
+            {/* Left: Reading Activity & Challenges */}
             <div className="lg:col-span-2 space-y-8">
+              
+              {/* READING CHALLENGE WIDGET */}
+              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-card p-8 border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <IoTrophy className="w-24 h-24 text-brand-600" />
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                      <IoTrophy className="text-yellow-500" /> Reading Challenge {new Date().getFullYear()}
+                    </h2>
+                    <button 
+                      onClick={handleSetChallenge}
+                      className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-600 transition-colors"
+                    >
+                      {challenge?.target ? "Ubah Target" : "Set Target"}
+                    </button>
+                  </div>
+
+                  {loadingChallenge ? (
+                    <div className="h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl animate-pulse" />
+                  ) : challenge?.target ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <span className="text-4xl font-black text-brand-600">{challenge.completed}</span>
+                          <span className="text-gray-400 font-bold text-lg"> / {challenge.target} buku</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-500 uppercase">
+                          {Math.round((challenge.completed / challenge.target) * 100)}% Selesai
+                        </span>
+                      </div>
+                      <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((challenge.completed / challenge.target) * 100, 100)}%` }}
+                          className="h-full bg-gradient-to-r from-brand-500 to-indigo-500 shadow-glow-sm"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        {challenge.completed >= challenge.target 
+                          ? "Luar biasa! Kamu telah mencapai target tahun ini! 🏆" 
+                          : `Ayo semangat! Kamu butuh ${challenge.target - challenge.completed} buku lagi untuk mencapai target.`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-gray-500 mb-4">Belum ada target membaca tahun ini.</p>
+                      <Button onClick={handleSetChallenge} size="sm" className="rounded-full">Mulai Tantangan Baru</Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-card p-8 border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
