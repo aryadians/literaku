@@ -36,7 +36,7 @@ export default function ReaderInterface({ book }: { book: any }) {
 
   // Fetch History, Status, and Progress
   useEffect(() => {
-    if (session?.user?.id && book?.id) {
+    if (session?.user?.id && book?.slug) {
       const recordHistory = async () => {
         await supabase.from("read_history").upsert(
           {
@@ -62,7 +62,7 @@ export default function ReaderInterface({ book }: { book: any }) {
 
       const fetchBookmarks = async () => {
         try {
-          const res = await fetch(`/api/books/${book.id}/bookmarks`);
+          const res = await fetch(`/api/books/${book.slug}/bookmarks`);
           if (res.ok) {
             const data = await res.json();
             setBookmarks(data.bookmarks || []);
@@ -97,10 +97,10 @@ export default function ReaderInterface({ book }: { book: any }) {
     });
 
     try {
-      const res = await fetch(`/api/books/${book.id}/bookmarks`, {
+      const res = await fetch(`/api/books/${book.slug}/bookmarks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageNumber: 1, note }), // Simplified: page 1 as we don't have direct PDF page access in iframe
+        body: JSON.stringify({ pageNumber: 1, note }),
       });
       if (res.ok) {
         const newBookmark = await res.json();

@@ -5,20 +5,30 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  props: { params: Promise<{ bookId: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ bookmarks: [] });
 
     const params = await props.params;
+    const slug = params.slug;
     const supabase = createAdminClient();
+
+    // 1. Get book ID from slug
+    const { data: book } = await supabase
+      .from("books")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+
+    if (!book) return NextResponse.json({ bookmarks: [] });
 
     const { data } = await supabase
       .from("book_bookmarks")
       .select("*")
       .eq("user_id", session.user.id)
-      .eq("book_id", params.bookId)
+      .eq("book_id", book.id)
       .order("page_number", { ascending: true });
 
     return NextResponse.json({ bookmarks: data || [] });
@@ -29,22 +39,32 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  props: { params: Promise<{ bookId: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const params = await props.params;
+    const slug = params.slug;
     const { pageNumber, note } = await request.json();
 
     const supabase = createAdminClient();
+
+    // 1. Get book ID from slug
+    const { data: book } = await supabase
+      .from("books")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+
+    if (!book) return NextResponse.json({ error: "Book not found" }, { status: 404 });
 
     const { data, error } = await supabase
       .from("book_bookmarks")
       .insert({
         user_id: session.user.id,
-        book_id: params.bookId,
+        book_id: book.id,
         page_number: pageNumber,
         note: note
       })
@@ -61,7 +81,7 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  props: { params: Promise<{ bookId: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
